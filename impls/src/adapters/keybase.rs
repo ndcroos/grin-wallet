@@ -402,6 +402,7 @@ impl SlateReceiver for KeybaseAllChannels {
 								&slate,
 								None,
 								false,
+								false,
 							)
 						};
 						match res {

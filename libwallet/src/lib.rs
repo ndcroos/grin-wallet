@@ -32,6 +32,8 @@ use grin_wallet_util as util;
 
 use blake2_rfc as blake2;
 
+use cfg_if::cfg_if;
+
 use failure;
 extern crate failure_derive;
 
@@ -46,6 +48,8 @@ extern crate strum;
 #[macro_use]
 extern crate strum_macros;
 
+extern crate hidapi;
+
 pub mod address;
 pub mod api_impl;
 mod error;
@@ -54,6 +58,25 @@ mod slate;
 pub mod slate_versions;
 pub mod slatepack;
 mod types;
+
+mod hw;
+
+cfg_if! {
+if #[cfg(target_os = "linux")] {
+	#[macro_use]
+	extern crate nix;
+	extern crate libc;
+	use std::mem;
+} else {
+	// Mock the type in other target_os
+	mod nix {
+		use thiserror::Error;
+		#[derive(Clone, Debug, Error, Eq, PartialEq)]
+		pub enum Error {}
+	}
+}}
+
+pub use crate::hw::{apdu_types, ledger_error, ledger_types, ledgerdevice, transportnativehid};
 
 pub use crate::error::{Error, ErrorKind};
 pub use crate::slate::{ParticipantData, Slate, SlateState};

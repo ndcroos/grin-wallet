@@ -524,6 +524,7 @@ where
 			&parent_key_id,
 			true,
 			use_test_rng,
+			args.hardware,
 		)?
 	};
 
@@ -620,6 +621,7 @@ pub fn process_invoice_tx<'a, T: ?Sized, C, K>(
 	slate: &Slate,
 	args: InitTxArgs,
 	use_test_rng: bool,
+	use_hardware: bool,
 ) -> Result<Slate, Error>
 where
 	T: WalletBackend<'a, C, K>,
@@ -677,6 +679,7 @@ where
 		&parent_key_id,
 		false,
 		use_test_rng,
+		use_hardware,
 	)?;
 
 	let keychain = w.keychain(keychain_mask)?;

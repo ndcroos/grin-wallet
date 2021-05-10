@@ -27,6 +27,8 @@ use crate::{
 	VersionInfo, WalletBackend,
 };
 
+use crate::hw::*;
+
 const FOREIGN_API_VERSION: u16 = 2;
 
 /// Return the version info
@@ -59,12 +61,16 @@ pub fn receive_tx<'a, T: ?Sized, C, K>(
 	slate: &Slate,
 	dest_acct_name: Option<&str>,
 	use_test_rng: bool,
+	hardware: bool,
 ) -> Result<Slate, Error>
 where
 	T: WalletBackend<'a, C, K>,
 	C: NodeClient + 'a,
 	K: Keychain + 'a,
 {
+	if hardware {
+		println!("hardware");
+	}
 	let mut ret_slate = slate.clone();
 	check_ttl(w, &ret_slate)?;
 	let parent_key_id = match dest_acct_name {

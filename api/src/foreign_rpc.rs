@@ -190,6 +190,7 @@ pub trait ForeignRpc {
 		slate: VersionedSlate,
 		dest_acct_name: Option<String>,
 		dest: Option<String>,
+		hardware: bool,
 	) -> Result<VersionedSlate, ErrorKind>;
 
 	/**
@@ -307,6 +308,7 @@ where
 		in_slate: VersionedSlate,
 		dest_acct_name: Option<String>,
 		dest: Option<String>,
+		hardware: bool,
 	) -> Result<VersionedSlate, ErrorKind> {
 		let version = in_slate.version();
 		let slate_from = Slate::from(in_slate);
@@ -315,6 +317,7 @@ where
 			&slate_from,
 			dest_acct_name.as_ref().map(String::as_str),
 			dest,
+			hardware,
 		)
 		.map_err(|e| e.kind())?;
 		Ok(VersionedSlate::into_version(out_slate, version).map_err(|e| e.kind())?)
@@ -490,8 +493,15 @@ pub fn run_doctest_foreign(
 				selection_strategy_is_use_all: true,
 				..Default::default()
 			};
-			api_impl::owner::process_invoice_tx(&mut **w, (&mask1).as_ref(), &slate, args, true)
-				.unwrap()
+			api_impl::owner::process_invoice_tx(
+				&mut **w,
+				(&mask1).as_ref(),
+				&slate,
+				args,
+				true,
+				false,
+			)
+			.unwrap()
 		};
 		println!("INIT INVOICE SLATE");
 		// Spit out slate for input to finalize_tx

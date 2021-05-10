@@ -829,8 +829,9 @@ where
 		let mut w_lock = self.wallet_inst.lock();
 		let w = w_lock.lc_provider()?.wallet_inst()?;
 		let send_args = args.send_args.clone();
+		let hw = args.hardware;
 		let slate =
-			owner::process_invoice_tx(&mut **w, keychain_mask, slate, args, self.doctest_mode)?;
+			owner::process_invoice_tx(&mut **w, keychain_mask, slate, args, self.doctest_mode, hw)?;
 		// Helper functionality. If send arguments exist, attempt to send
 		match send_args {
 			Some(sa) => {

@@ -151,6 +151,7 @@ pub fn add_inputs_to_slate<'a, T: ?Sized, C, K>(
 	parent_key_id: &Identifier,
 	is_initiator: bool,
 	use_test_rng: bool,
+	use_hardware: bool,
 ) -> Result<Context, Error>
 where
 	T: WalletBackend<'a, C, K>,

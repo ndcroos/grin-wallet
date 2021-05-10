@@ -2294,8 +2294,15 @@ pub fn run_doctest_owner(
 		{
 			let mut w_lock = wallet2.lock();
 			let w2 = w_lock.lc_provider().unwrap().wallet_inst().unwrap();
-			slate = api_impl::foreign::receive_tx(&mut **w2, (&mask2).as_ref(), &slate, None, true)
-				.unwrap();
+			slate = api_impl::foreign::receive_tx(
+				&mut **w2,
+				(&mask2).as_ref(),
+				&slate,
+				None,
+				true,
+				false,
+			)
+			.unwrap();
 			w2.close().unwrap();
 		}
 		// Spit out slate for input to finalize_tx

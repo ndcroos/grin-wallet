@@ -56,6 +56,7 @@ pub struct GlobalArgs {
 	pub show_spent: bool,
 	pub password: Option<ZeroingString>,
 	pub tls_conf: Option<TLSConfig>,
+	pub hardware: bool,
 }
 
 /// Arguments for init command
@@ -259,6 +260,7 @@ pub struct SendArgs {
 	pub ttl_blocks: Option<u64>,
 	pub skip_tor: bool,
 	pub outfile: Option<String>,
+	pub hardware: bool,
 }
 
 pub fn send<L, C, K>(
@@ -530,6 +532,7 @@ pub struct ReceiveArgs {
 	pub input_slatepack_message: Option<String>,
 	pub skip_tor: bool,
 	pub outfile: Option<String>,
+	pub hardware: bool,
 }
 
 pub fn receive<L, C, K>(
@@ -565,8 +568,10 @@ where
 		None => None,
 	};
 
+	let hardware = g_args.hardware;
+
 	controller::foreign_single_use(owner_api.wallet_inst.clone(), km, |api| {
-		slate = api.receive_tx(&slate, Some(&g_args.account), None)?;
+		slate = api.receive_tx(&slate, Some(&g_args.account), None, hardware)?;
 		Ok(())
 	})?;
 
@@ -689,6 +694,7 @@ pub struct FinalizeArgs {
 	pub fluff: bool,
 	pub nopost: bool,
 	pub outfile: Option<String>,
+	pub hardware: bool,
 }
 
 pub fn finalize<L, C, K>(

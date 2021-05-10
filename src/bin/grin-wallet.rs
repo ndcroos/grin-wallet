@@ -67,10 +67,14 @@ fn main() {
 }
 
 fn real_main() -> i32 {
+	println!("start");
 	let yml = load_yaml!("grin-wallet.yml");
 	let args = App::from_yaml(yml)
 		.version(built_info::PKG_VERSION)
 		.get_matches();
+	if args.is_present("hardware") {
+		println!("hardware");
+	}
 
 	let chain_type = if args.is_present("testnet") {
 		global::ChainTypes::Testnet

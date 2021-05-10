@@ -1389,6 +1389,7 @@ name = "grin_wallet"
 version = "5.1.0-alpha.1"
 dependencies = [
  "built",
+ "cfg-if 0.1.10",
  "clap",
  "easy-jsonrpc-mw",
  "failure",
@@ -1527,15 +1528,21 @@ dependencies = [
  "blake2-rfc",
  "bs58",
  "byteorder",
+ "cfg-if 0.1.10",
  "chrono",
  "curve25519-dalek",
  "ed25519-dalek",
  "failure",
  "failure_derive",
+ "futures 0.3.5",
  "grin_wallet_config",
  "grin_wallet_util",
+ "hex",
+ "hidapi",
  "lazy_static",
+ "libc",
  "log",
+ "nix",
  "rand 0.6.5",
  "regex",
  "secrecy",
@@ -1545,6 +1552,8 @@ dependencies = [
  "sha2 0.8.2",
  "strum",
  "strum_macros",
+ "thiserror",
+ "trait-async",
  "uuid",
  "x25519-dalek",
 ]
@@ -1612,6 +1621,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3deed196b6e7f9e44a2ae8d94225d80302d81208b1bb673fd21fe634645c85a9"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "hex"
+version = "0.4.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
+
+[[package]]
+name = "hidapi"
+version = "1.2.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81e07da7e8614133e88b3a93b7352eb3729e3ccd82d5ab661adf23bef1761bf8"
+dependencies = [
+ "cc",
+ "libc",
+ "pkg-config",
 ]
 
 [[package]]
@@ -3633,6 +3659,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d593f98af59ebc017c0648f0117525db358745a8894a8d684e185ba3f45954f9"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "trait-async"
+version = "0.1.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dfe8c654712ee594c93b7222d98b4e61c7e003aec49e73877edac607a213699d"
+dependencies = [
+ "proc-macro2 1.0.19",
+ "quote 1.0.7",
+ "syn 1.0.38",
 ]
 
 [[package]]

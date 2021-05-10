@@ -37,6 +37,10 @@ args:
       short: r
       long: api_server_address
       takes_value: true
+  - hardware:
+      help: Using hardware wallet.
+      long: hardware
+      takes_value: false
 subcommands:
   - cli:
       about: Start the wallet in interactive CLI mode (EXPERIMENTAL and UNDER DEVELOPMENT)
@@ -149,6 +153,11 @@ subcommands:
             short: u
             long: outfile
             takes_value: true
+        - hardware:
+            help: hardware
+            short: hw
+            long: hardware
+            takes_value: false
   - unpack:
       about: Unpack and display an armored Slatepack Message, decrypting if possible
       args:
@@ -174,6 +183,11 @@ subcommands:
             short: u
             long: outfile
             takes_value: true
+        - hardware:
+            help: hardware
+            short: hw
+            long: hardware
+            takes_value: false
   - finalize:
       about: Processes a Slatepack Message to finalize a transfer.
       args:
@@ -195,6 +209,11 @@ subcommands:
             short: u
             long: outfile
             takes_value: true
+        - hardware:
+            help: hardware
+            short: hw
+            long: hardware
+            takes_value: false
   - invoice:
       about: Initialize an invoice transaction, outputting a Slatepack Message with the result
       args:
@@ -211,6 +230,11 @@ subcommands:
             short: u
             long: outfile
             takes_value: true
+        - hardware:
+            help: hardware
+            short: hw
+            long: hardware
+            takes_value: false
   - pay:
       about: Spend coins to pay the provided invoice transaction
       args:

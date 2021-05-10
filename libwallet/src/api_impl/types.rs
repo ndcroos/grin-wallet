@@ -78,6 +78,8 @@ pub struct InitTxArgs {
 	/// Sender arguments. If present, the underlying function will also attempt to send the
 	/// transaction to a destination and optionally finalize the result
 	pub send_args: Option<InitTxSendArgs>,
+	/// Flag for if hardware wallet is used.
+	pub hardware: bool,
 }
 
 /// Send TX API Args, for convenience functionality that inits the transaction and sends
@@ -92,6 +94,7 @@ pub struct InitTxSendArgs {
 	pub fluff: bool,
 	/// If set, skip the Slatepack TOR send attempt
 	pub skip_tor: bool,
+	pub hardware: bool,
 }
 
 impl Default for InitTxArgs {
@@ -109,6 +112,7 @@ impl Default for InitTxArgs {
 			payment_proof_recipient_address: None,
 			late_lock: Some(false),
 			send_args: None,
+			hardware: false,
 		}
 	}
 }

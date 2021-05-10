@@ -75,6 +75,7 @@ where
 	/// Optional TOR configuration, holding address of sender and
 	/// data directory
 	tor_config: Mutex<Option<TorConfig>>,
+	hardware: bool,
 }
 
 impl<'a, L, C, K> Foreign<'a, L, C, K>
@@ -180,6 +181,7 @@ where
 			middleware,
 			keychain_mask,
 			tor_config: Mutex::new(None),
+			hardware: false,
 		}
 	}
 
@@ -351,9 +353,11 @@ where
 		slate: &Slate,
 		dest_acct_name: Option<&str>,
 		r_addr: Option<String>,
+		hardware: bool,
 	) -> Result<Slate, Error> {
 		let mut w_lock = self.wallet_inst.lock();
 		let w = w_lock.lc_provider()?.wallet_inst()?;
+		//self.hardware = hardware;
 		if let Some(m) = self.middleware.as_ref() {
 			m(
 				ForeignCheckMiddlewareFn::ReceiveTx,
@@ -367,6 +371,7 @@ where
 			slate,
 			dest_acct_name,
 			self.doctest_mode,
+			hardware,
 		)?;
 		match r_addr {
 			Some(a) => {

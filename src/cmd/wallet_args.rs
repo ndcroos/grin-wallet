@@ -318,6 +318,10 @@ pub fn parse_global_args(
 			Some(TLSConfig::new(file, key))
 		}
 	};
+	let mut hw = false;
+	if args.is_present("hardware") {
+		hw = true;
+	}
 
 	Ok(command::GlobalArgs {
 		account: account.to_owned(),
@@ -326,6 +330,7 @@ pub fn parse_global_args(
 		node_api_secret: node_api_secret,
 		password: password,
 		tls_conf: tls_conf,
+		hardware: hw,
 	})
 }
 
@@ -510,6 +515,7 @@ pub fn parse_send_args(args: &ArgMatches) -> Result<command::SendArgs, ParseErro
 		target_slate_version: target_slate_version,
 		outfile,
 		skip_tor: args.is_present("manual"),
+		hardware: args.is_present("hardware"),
 	})
 }
 
@@ -528,18 +534,23 @@ pub fn parse_receive_args(args: &ArgMatches) -> Result<command::ReceiveArgs, Par
 		false => None,
 	};
 
+	let hw = args.is_present("hardware");
+	if hw {
+		println!("hardware");
+	}
+
 	let mut input_slatepack_message = None;
 	if input_file.is_none() {
 		input_slatepack_message = Some(prompt_slatepack()?);
 	}
 
 	let outfile = parse_optional(args, "outfile")?;
-
 	Ok(command::ReceiveArgs {
 		input_file,
 		input_slatepack_message,
 		skip_tor: args.is_present("manual"),
 		outfile,
+		hardware: hw,
 	})
 }
 
@@ -570,6 +581,7 @@ pub fn parse_unpack_args(args: &ArgMatches) -> Result<command::ReceiveArgs, Pars
 		input_slatepack_message,
 		skip_tor: args.is_present("manual"),
 		outfile,
+		hardware: args.is_present("hardware"),
 	})
 }
 
@@ -603,6 +615,7 @@ pub fn parse_finalize_args(args: &ArgMatches) -> Result<command::FinalizeArgs, P
 		fluff: fluff,
 		nopost: nopost,
 		outfile,
+		hardware: args.is_present("hardware"),
 	})
 }
 
