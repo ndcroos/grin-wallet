@@ -67,6 +67,7 @@ pub struct InitArgs {
 	pub config: WalletConfig,
 	pub recovery_phrase: Option<ZeroingString>,
 	pub restore: bool,
+	pub hardware: bool,
 }
 
 pub fn init<L, C, K>(
@@ -351,7 +352,7 @@ where
 		Ok(Some(s)) => {
 			controller::owner_single_use(None, keychain_mask, Some(owner_api), |api, m| {
 				api.tx_lock_outputs(m, &s)?;
-				let ret_slate = api.finalize_tx(m, &s)?;
+				let ret_slate = api.finalize_tx(m, &s, args.hardware)?;
 				let result = api.post_tx(m, &ret_slate, args.fluff);
 				match result {
 					Ok(_) => {
@@ -718,19 +719,19 @@ where
 	// try to determine what kind of finalization this is
 	// based on the slate state
 	let is_invoice = slate.state == SlateState::Invoice2;
-
+	let hardware = args.hardware;
 	if is_invoice {
 		let km = match keychain_mask.as_ref() {
 			None => None,
 			Some(&m) => Some(m.to_owned()),
 		};
 		controller::foreign_single_use(owner_api.wallet_inst.clone(), km, |api| {
-			slate = api.finalize_tx(&slate, false)?;
+			slate = api.finalize_tx(&slate, false, hardware)?;
 			Ok(())
 		})?;
 	} else {
 		controller::owner_single_use(None, keychain_mask, Some(owner_api), |api, m| {
-			slate = api.finalize_tx(m, &slate)?;
+			slate = api.finalize_tx(m, &slate, args.hardware)?;
 			Ok(())
 		})?;
 	}
@@ -933,6 +934,7 @@ where
 /// Info command args
 pub struct InfoArgs {
 	pub minimum_confirmations: u64,
+	pub hardware: bool,
 }
 
 pub fn info<L, C, K>(

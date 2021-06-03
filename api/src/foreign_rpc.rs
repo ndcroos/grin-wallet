@@ -285,7 +285,11 @@ pub trait ForeignRpc {
 	# ,false, 5, false, true);
 	```
 	*/
-	fn finalize_tx(&self, slate: VersionedSlate) -> Result<VersionedSlate, ErrorKind>;
+	fn finalize_tx(
+		&self,
+		slate: VersionedSlate,
+		hardware: bool,
+	) -> Result<VersionedSlate, ErrorKind>;
 }
 
 impl<'a, L, C, K> ForeignRpc for Foreign<'a, L, C, K>
@@ -323,10 +327,14 @@ where
 		Ok(VersionedSlate::into_version(out_slate, version).map_err(|e| e.kind())?)
 	}
 
-	fn finalize_tx(&self, in_slate: VersionedSlate) -> Result<VersionedSlate, ErrorKind> {
+	fn finalize_tx(
+		&self,
+		in_slate: VersionedSlate,
+		hardware: bool,
+	) -> Result<VersionedSlate, ErrorKind> {
 		let version = in_slate.version();
-		let out_slate =
-			Foreign::finalize_tx(self, &Slate::from(in_slate), true).map_err(|e| e.kind())?;
+		let out_slate = Foreign::finalize_tx(self, &Slate::from(in_slate), true, hardware)
+			.map_err(|e| e.kind())?;
 		Ok(VersionedSlate::into_version(out_slate, version).map_err(|e| e.kind())?)
 	}
 }

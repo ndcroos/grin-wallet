@@ -684,11 +684,12 @@ where
 					false,
 					self.doctest_mode,
 				);
+				let hardware = sa.hardware;
 				match res {
 					Ok(Some(s)) => {
 						if sa.post_tx {
 							self.tx_lock_outputs(keychain_mask, &s)?;
-							let ret_slate = self.finalize_tx(keychain_mask, &s)?;
+							let ret_slate = self.finalize_tx(keychain_mask, &s, hardware)?;
 							let result = self.post_tx(keychain_mask, &ret_slate, sa.fluff);
 							match result {
 								Ok(_) => {
@@ -702,7 +703,7 @@ where
 							}
 						} else {
 							self.tx_lock_outputs(keychain_mask, &s)?;
-							let ret_slate = self.finalize_tx(keychain_mask, &s)?;
+							let ret_slate = self.finalize_tx(keychain_mask, &s, hardware)?;
 							return Ok(ret_slate);
 						}
 					}
@@ -985,10 +986,11 @@ where
 		&self,
 		keychain_mask: Option<&SecretKey>,
 		slate: &Slate,
+		hardware: bool,
 	) -> Result<Slate, Error> {
 		let mut w_lock = self.wallet_inst.lock();
 		let w = w_lock.lc_provider()?.wallet_inst()?;
-		owner::finalize_tx(&mut **w, keychain_mask, slate)
+		owner::finalize_tx(&mut **w, keychain_mask, slate, hardware)
 	}
 
 	/// Posts a completed transaction to the listening node for validation and inclusion in a block

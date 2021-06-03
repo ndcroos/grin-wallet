@@ -1,4 +1,4 @@
-//!  Types associated with Ledger
+//!  Types associated with Ledger. Could be split in another way
 
 use serde::{Deserialize, Serialize};
 //use std::sync::{Arc, Mutex, Weak};

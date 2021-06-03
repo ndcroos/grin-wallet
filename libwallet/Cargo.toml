@@ -41,6 +41,7 @@ trait-async = "0.1.24"
 hex = "0.4.2"
 libc = "0.2.72"
 cfg-if = "0.1.10"
+bincode = "1.2.1"
 
 grin_wallet_util = { path = "../util", version = "5.1.0-alpha.1" }
 grin_wallet_config = { path = "../config", version = "5.1.0-alpha.1" }

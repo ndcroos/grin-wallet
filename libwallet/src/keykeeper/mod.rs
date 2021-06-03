@@ -12,16 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Functions and types for Ledger device
+pub mod keykeeper_types;
+pub mod ledger_keykeeper;
+pub mod private_keykeeper;
+pub mod software_keykeeper;
 
-pub mod apdu_types;
-pub mod ledger_error;
-pub mod ledger_types;
-pub mod ledgerdevice;
-pub mod transportnativehid;
-
-pub use self::apdu_types::*;
-pub use self::ledger_error::*;
-pub use self::ledger_types::*;
-pub use self::ledgerdevice::*;
-pub use self::transportnativehid::*;
+pub use self::keykeeper_types::*;
+pub use self::ledger_keykeeper::*;
+pub use self::private_keykeeper::*;
+pub use self::software_keykeeper::*;

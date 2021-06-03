@@ -12,16 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Functions and types for Ledger device
+//!
 
-pub mod apdu_types;
-pub mod ledger_error;
-pub mod ledger_types;
-pub mod ledgerdevice;
-pub mod transportnativehid;
+use crate::slate::Slate;
+use crate::{Error, ErrorKind};
 
-pub use self::apdu_types::*;
-pub use self::ledger_error::*;
-pub use self::ledger_types::*;
-pub use self::ledgerdevice::*;
-pub use self::transportnativehid::*;
+struct SoftwareKeyKeeper {}

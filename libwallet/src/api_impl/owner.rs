@@ -42,6 +42,8 @@ use std::convert::{TryFrom, TryInto};
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
 
+use crate::keykeeper::LedgerKeyKeeper;
+
 /// List of accounts
 pub fn accounts<'a, T: ?Sized, C, K>(w: &mut T) -> Result<Vec<AcctPathMapping>, Error>
 where
@@ -469,6 +471,8 @@ where
 		None => w.parent_key_id(),
 	};
 
+	if (args.hardware) {}
+
 	let mut slate = tx::new_tx_slate(
 		&mut *w,
 		args.amount,
@@ -527,6 +531,8 @@ where
 			args.hardware,
 		)?
 	};
+	let mut keykeeper = LedgerKeyKeeper::new();
+	keykeeper.sign_sender(&slate, height);
 
 	// Payment Proof, add addresses to slate and save address
 	// TODO: Note we only use single derivation path for now,
@@ -774,6 +780,7 @@ pub fn finalize_tx<'a, T: ?Sized, C, K>(
 	w: &mut T,
 	keychain_mask: Option<&SecretKey>,
 	slate: &Slate,
+	hardware: bool,
 ) -> Result<Slate, Error>
 where
 	T: WalletBackend<'a, C, K>,
@@ -829,8 +836,16 @@ where
 
 	selection::repopulate_tx(&mut *w, keychain_mask, &mut sl, &context, true)?;
 
-	tx::complete_tx(&mut *w, keychain_mask, &mut sl, &context)?;
-	tx::verify_slate_payment_proof(&mut *w, keychain_mask, &parent_key_id, &context, &sl)?;
+	// TODO: think of combining these for HW in a separate method?
+	tx::complete_tx(&mut *w, keychain_mask, &mut sl, &context, hardware)?;
+	tx::verify_slate_payment_proof(
+		&mut *w,
+		keychain_mask,
+		&parent_key_id,
+		&context,
+		&sl,
+		hardware,
+	)?;
 	tx::update_stored_tx(&mut *w, keychain_mask, &context, &sl, false)?;
 	{
 		let mut batch = w.batch(keychain_mask)?;

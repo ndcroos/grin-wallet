@@ -227,6 +227,7 @@ pub fn send_to_dest<'a, L, C, K>(
 	dest: &str,
 	amount: u64,
 	test_mode: bool,
+	hardware: bool,
 ) -> Result<(), libwallet::Error>
 where
 	L: WalletLCProvider<'a, C, K>,
@@ -248,7 +249,7 @@ where
 		let slate_i = owner::init_send_tx(&mut **w, keychain_mask, args, test_mode)?;
 		let slate = client.send_tx_slate_direct(dest, &slate_i)?;
 		owner::tx_lock_outputs(&mut **w, keychain_mask, &slate)?;
-		owner::finalize_tx(&mut **w, keychain_mask, &slate)?
+		owner::finalize_tx(&mut **w, keychain_mask, &slate, hardware)?
 	};
 	let client = {
 		let mut w_lock = wallet.lock();

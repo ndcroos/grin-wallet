@@ -27,7 +27,9 @@ use crate::{
 	VersionInfo, WalletBackend,
 };
 
-use crate::hw::*;
+use crate::hw::LedgerDevice;
+use crate::keykeeper::LedgerKeyKeeper;
+use std::ops::Not;
 
 const FOREIGN_API_VERSION: u16 = 2;
 
@@ -102,6 +104,9 @@ where
 	let height = w.last_confirmed_height()?;
 	let keychain = w.keychain(keychain_mask)?;
 
+	//let mut ledger = LedgerDevice::new();
+	let mut keykeeper = LedgerKeyKeeper::new();
+
 	let context = tx::add_output_to_slate(
 		&mut *w,
 		keychain_mask,
@@ -113,10 +118,23 @@ where
 	)?;
 
 	// Add our contribution to the offset
-	ret_slate.adjust_offset(&keychain, &context)?;
+	if hardware {
+		keykeeper.sign_receiver(slate);
+		//ledger.sign_receiver(&keychain, &context);
+	} else {
+		ret_slate.adjust_offset(&keychain, &context)?;
+	}
 
+	// TODO
 	let excess = ret_slate.calc_excess(keychain.secp())?;
+	/*
+			let excess = if !hardware {
 
+			}
+			else {
+
+			};
+	*/
 	if let Some(ref mut p) = ret_slate.payment_proof {
 		let sig = tx::create_payment_proof_signature(
 			ret_slate.amount,
@@ -142,6 +160,7 @@ pub fn finalize_tx<'a, T: ?Sized, C, K>(
 	keychain_mask: Option<&SecretKey>,
 	slate: &Slate,
 	post_automatically: bool,
+	hardware: bool,
 ) -> Result<Slate, Error>
 where
 	T: WalletBackend<'a, C, K>,
@@ -154,14 +173,17 @@ where
 		check_ttl(w, &sl)?;
 
 		// Add our contribution to the offset
-		sl.adjust_offset(&w.keychain(keychain_mask)?, &context)?;
+		if hardware {
+		} else {
+			sl.adjust_offset(&w.keychain(keychain_mask)?, &context)?;
+		}
 
 		let mut temp_ctx = context.clone();
 		temp_ctx.sec_key = context.initial_sec_key.clone();
 		temp_ctx.sec_nonce = context.initial_sec_nonce.clone();
 		selection::repopulate_tx(&mut *w, keychain_mask, &mut sl, &temp_ctx, false)?;
 
-		tx::complete_tx(&mut *w, keychain_mask, &mut sl, &context)?;
+		tx::complete_tx(&mut *w, keychain_mask, &mut sl, &context, hardware)?;
 		tx::update_stored_tx(&mut *w, keychain_mask, &context, &mut sl, true)?;
 		{
 			let mut batch = w.batch(keychain_mask)?;
@@ -171,7 +193,7 @@ where
 		sl.state = SlateState::Invoice3;
 		sl.amount = 0;
 	} else {
-		sl = owner_finalize(w, keychain_mask, slate)?;
+		sl = owner_finalize(w, keychain_mask, slate, hardware)?;
 	}
 	if post_automatically {
 		post_tx(w.w2n_client(), sl.tx_or_err()?, true)?;

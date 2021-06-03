@@ -24,6 +24,7 @@ use crate::grin_keychain::{Identifier, Keychain};
 use crate::grin_util::secp::key::SecretKey;
 use crate::grin_util::secp::pedersen;
 use crate::grin_util::Mutex;
+use crate::hw::LedgerDevice;
 use crate::internal::{selection, updater};
 use crate::slate::Slate;
 use crate::types::{Context, NodeClient, StoredProofInfo, TxLogEntryType, WalletBackend};
@@ -158,6 +159,8 @@ where
 	C: NodeClient + 'a,
 	K: Keychain + 'a,
 {
+	//let mut ledger = LedgerDevice::new();
+
 	// sender should always refresh outputs
 	updater::refresh_outputs(wallet, keychain_mask, parent_key_id, false)?;
 
@@ -187,17 +190,32 @@ where
 	// Generate a kernel offset and subtract from our context's secret key. Store
 	// the offset in the slate's transaction kernel, and adds our public key
 	// information to the slate
+
 	slate.fill_round_1(&wallet.keychain(keychain_mask)?, &mut context)?;
 
 	context.initial_sec_key = context.sec_key.clone();
 
 	if !is_initiator {
 		// perform partial sig
-		slate.fill_round_2(
-			&wallet.keychain(keychain_mask)?,
-			&context.sec_key,
-			&context.sec_nonce,
-		)?;
+		if !use_hardware {
+			slate.fill_round_2(
+				&wallet.keychain(keychain_mask)?,
+				&context.sec_key,
+				&context.sec_nonce,
+			)?;
+		} else {
+			// Get sec_key and sec_nonce from hardware wallet.
+			//ledger.
+			/*
+						let sec_key = ;
+						let sec_nonce = ;
+			slate.fill_round_2(
+								&wallet.keychain(keychain_mask)?,
+				sec_key,
+				sec_nonce,
+						)?;
+						*/
+		};
 	}
 
 	Ok(context)
@@ -301,6 +319,7 @@ pub fn complete_tx<'a, T: ?Sized, C, K>(
 	keychain_mask: Option<&SecretKey>,
 	slate: &mut Slate,
 	context: &Context,
+	hardware: bool,
 ) -> Result<(), Error>
 where
 	T: WalletBackend<'a, C, K>,
@@ -308,6 +327,7 @@ where
 	K: Keychain + 'a,
 {
 	// when self sending invoice tx, use initiator nonce to finalize
+	// TODO: Use hardware to get secure key and secure nonce.
 	let (sec_key, sec_nonce) = {
 		if context.initial_sec_key != context.sec_key
 			&& context.initial_sec_nonce != context.sec_nonce
@@ -501,6 +521,7 @@ pub fn verify_slate_payment_proof<'a, T: ?Sized, C, K>(
 	parent_key_id: &Identifier,
 	context: &Context,
 	slate: &Slate,
+	hardware: bool,
 ) -> Result<(), Error>
 where
 	T: WalletBackend<'a, C, K>,

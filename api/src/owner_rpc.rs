@@ -1837,6 +1837,7 @@ where
 			self,
 			(&token.keychain_mask).as_ref(),
 			&Slate::from(in_slate),
+			false,
 		)
 		.map_err(|e| e.kind())?;
 		let version = SlateVersion::V4;
@@ -2142,6 +2143,7 @@ pub fn run_doctest_owner(
 	lock_tx: bool,
 	finalize_tx: bool,
 	payment_proof: bool,
+	hardware: bool,
 ) -> Result<Option<serde_json::Value>, String> {
 	use easy_jsonrpc_mw::Handler;
 	use grin_wallet_impls::test_framework::{self, LocalWalletClient, WalletProxy};
@@ -2313,7 +2315,8 @@ pub fn run_doctest_owner(
 		println!("RECEIPIENT SLATE");
 		println!("{}", serde_json::to_string_pretty(&slate).unwrap());
 		if finalize_tx {
-			slate = api_impl::owner::finalize_tx(&mut **w, (&mask1).as_ref(), &slate).unwrap();
+			slate = api_impl::owner::finalize_tx(&mut **w, (&mask1).as_ref(), &slate, hardware)
+				.unwrap();
 			error!("FINALIZED TX SLATE");
 			println!("{}", serde_json::to_string_pretty(&slate).unwrap());
 		}

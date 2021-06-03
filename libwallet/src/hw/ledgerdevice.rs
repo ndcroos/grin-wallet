@@ -14,32 +14,48 @@
 
 //! Wrapper for Ledger device.
 
+use bincode;
+
 use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::{Error, LedgerAppError};
 use crate::hw::ledger_types::*;
 use crate::hw::transportnativehid::*;
 use std::str;
 
+use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
+use crate::grin_util::secp::key::{PublicKey, SecretKey};
+use crate::grin_util::secp::pedersen::Commitment;
+use crate::grin_util::secp::Signature;
+use crate::grin_util::{secp, static_secp_instance};
+use crate::types::Context;
+use ed25519_dalek::PublicKey as DalekPublicKey;
+use ed25519_dalek::Signature as DalekSignature;
+
+use crate::grin_keychain::Identifier;
+use crate::keykeeper::{InputsOutputs, SenderInputParams};
+use crate::slate::{PaymentInfo, Slate};
+
 // Different instructions
+// TODO
 const INS_GET_VERSION: u8 = 0x03;
 const INS_GET_APP_NAME: u8 = 0x04;
-const INS_DEVICE_RESET: u8 = 0x00;
-const INS_PUT_KEY: u8 = 0x00;
-const INS_APP_INFO: u8 = 0x01;
-const INS_GEN_KEY_DERIVATION: u8 = 0x00;
-const INS_GENERATE_KEYPAIR: u8 = 0x00;
-const INS_RESET: u8 = 0x00;
-const INS_GET_KEY: u8 = 0x00;
+const INS_DEVICE_RESET: u8 = 0x05;
+//const INS_PUT_KEY: u8 = 0x06;
+//const INS_APP_INFO: u8 = 0x07;
+//const INS_GEN_KEY_DERIVATION: u8 = 0x00;
+//const INS_GENERATE_KEYPAIR: u8 = 0x00;
+//const INS_RESET: u8 = 0x00;
+//const INS_GET_KEY: u8 = 0x00;
 
-const INS_RECEIVE: u8 = 0x00; // TODO
-const INS_SEND: u8 = 0x00;
+const INS_SEND: u8 = 0x0B;
+const INS_RECEIVE: u8 = 0x0C; // TODO
 
 // Constants
 const PROTOCOL_VERSION: u8 = 4;
 
-const CLA_APP_INFO: u8 = 0xb0;
+const CLA_APP_INFO: u8 = 0xb0; //
 
-const CLA_DEVICE_INFO: u8 = 0xe0;
+const CLA_DEVICE_INFO: u8 = 0xe0; //
 const INS_DEVICE_INFO: u8 = 0x01;
 
 const USER_MESSAGE_CHUNK_SIZE: usize = 250; //
@@ -87,14 +103,14 @@ impl LedgerDevice {
 	///
 	pub fn get_secret_keys(&mut self) -> Result<(), Error> {
 		println!("get_secret_keys");
-		LedgerDevice::send_simple(self, INS_GET_KEY, 0x02);
+		//LedgerDevice::send_simple(self, INS_GET_KEY, 0x02);
 		Ok(())
 	}
 
 	///
 	pub fn reset(&mut self) -> Result<(), Error> {
-		let cmd = LedgerDevice::set_command_header_noopt(self, INS_RESET, 0x00, 0x00);
-		self._ledger.exchange(&cmd);
+		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RESET, 0x00, 0x00);
+		//self._ledger.exchange(&cmd);
 		Ok(())
 	}
 
@@ -146,7 +162,7 @@ impl LedgerDevice {
 
 	///
 	pub fn generate_keys(&mut self, /*pub, sec, recoveryKey,*/ recover: bool) -> () {
-		LedgerDevice::send_simple(self, INS_GENERATE_KEYPAIR, 0x00);
+		//LedgerDevice::send_simple(self, INS_GENERATE_KEYPAIR, 0x00);
 
 		LedgerDevice::receive_secret(self);
 	}
@@ -154,11 +170,11 @@ impl LedgerDevice {
 	///
 	pub fn generate_key_derivation(&mut self /*pub, sec, derivation*/) -> () {
 		println!("Generate key derivation.");
-		let cmd = LedgerDevice::set_command_header_noopt(self, INS_GEN_KEY_DERIVATION, 0x00, 0x00);
+		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_GEN_KEY_DERIVATION, 0x00, 0x00);
 
 		LedgerDevice::send_secret(self, "".to_string(), 0);
 
-		self._ledger.exchange(&cmd);
+		//self._ledger.exchange(&cmd);
 
 		LedgerDevice::receive_secret(self);
 	}
@@ -213,8 +229,15 @@ impl LedgerDevice {
 
 	/* Round 1*/
 	///
-	pub async fn sign_sender(&mut self) -> Result<(), LedgerAppError> {
-		let cmd = LedgerDevice::set_command_header_noopt(self, INS_SEND, 0x00, 0x00);
+	pub async fn sign_sender(
+		&mut self,
+		inputs_outputs: InputsOutputs,
+		sender_input_params: SenderInputParams,
+	) -> Result<(), LedgerAppError> {
+		// Convert data to binary, before sending to Ledger device.
+		// Set slate as data.
+		//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
+		//let cmd = LedgerDevice::set_command_header(self, INS_SEND, 0x00, 0x00, xs);
 
 		// Return pub_nonce and commitment, generated from secret nonce on device.
 		//let pub_once =
@@ -245,7 +268,12 @@ impl LedgerDevice {
 	}
 
 	/// Returns payment nonce, proof signature,
-	pub async fn sign_receiver(&mut self) -> Result<(), LedgerAppError> {
+	pub async fn sign_receiver<K: Keychain>(
+		&mut self,
+		keychain: &K,
+		context: &Context,
+		inputs_outputs: InputsOutputs,
+	) -> Result<(), LedgerAppError> {
 		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
 
 		// Set data
@@ -278,6 +306,10 @@ impl LedgerDevice {
 
 		Ok(())
 	}
+
+	pub fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
+		Ok(())
+	}
 }
 
 /// Translate a retcode into an error message.
@@ -302,13 +334,15 @@ pub fn map_apdu_error_description(retcode: u16) -> &'static str {
 
 /// Only used for testing purposes. Set specific key on device.
 fn put_keys() -> () {
-	let command = APDUCommand {
-		cla: PROTOCOL_VERSION,
-		ins: INS_PUT_KEY,
-		p1: 0x00,
-		p2: 0x00,
-		data: Vec::new(),
-	};
+	/*
+		let command = APDUCommand {
+			cla: PROTOCOL_VERSION,
+			ins: INS_PUT_KEY,
+			p1: 0x00,
+			p2: 0x00,
+			data: Vec::new(),
+		};
+	*/
 
 	// exchange
 }

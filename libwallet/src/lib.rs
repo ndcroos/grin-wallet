@@ -60,6 +60,7 @@ pub mod slatepack;
 mod types;
 
 mod hw;
+mod keykeeper;
 
 cfg_if! {
 if #[cfg(target_os = "linux")] {
@@ -77,6 +78,9 @@ if #[cfg(target_os = "linux")] {
 }}
 
 pub use crate::hw::{apdu_types, ledger_error, ledger_types, ledgerdevice, transportnativehid};
+pub use crate::keykeeper::{
+	keykeeper_types, ledger_keykeeper, private_keykeeper, software_keykeeper,
+};
 
 pub use crate::error::{Error, ErrorKind};
 pub use crate::slate::{ParticipantData, Slate, SlateState};

@@ -377,6 +377,7 @@ where
 		config: config.clone(),
 		recovery_phrase: recovery_phrase,
 		restore: false,
+		hardware: args.is_present("hardware"),
 	})
 }
 
@@ -756,6 +757,7 @@ pub fn parse_info_args(args: &ArgMatches) -> Result<command::InfoArgs, ParseErro
 	let mc = parse_u64(mc, "minimum_confirmations")?;
 	Ok(command::InfoArgs {
 		minimum_confirmations: mc,
+		hardware: args.is_present("hardware"),
 	})
 }
 
