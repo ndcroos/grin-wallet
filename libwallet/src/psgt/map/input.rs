@@ -12,9 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::io;
+
 use crate::grin_core::core::transaction::OutputFeatures;
 use crate::grin_core::libtx::secp_ser;
 use crate::grin_util::secp::pedersen;
+
 use crate::psgt;
 use crate::psgt::encode;
 use crate::psgt::map::Map;
@@ -58,6 +61,26 @@ impl Map for Input {
 				}
 			}
 		}
+		Ok(())
+	}
+
+	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
+		let mut rv: Vec<raw::Pair> = Default::default();
+
+		// TODO
+
+		for (key, value) in self.unknown.iter() {
+			rv.push(raw::Pair {
+				key: key.clone(),
+				value: value.clone(),
+			});
+		}
+
+		Ok(rv)
+	}
+
+	fn merge(&mut self, other: Self) -> Result<(), psgt::Error> {
+		// TODO
 		Ok(())
 	}
 }

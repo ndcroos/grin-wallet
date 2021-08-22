@@ -12,17 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::btree_map::Entry;
+use std::collections::BTreeMap;
+
 use crate::grin_core::core::transaction::OutputFeatures;
 use crate::grin_core::libtx::secp_ser;
 use crate::grin_util::secp::pedersen;
+
 use crate::psgt;
 use crate::psgt::encode;
 use crate::psgt::map::Map;
 use crate::psgt::raw;
 use crate::psgt::serialize::Deserialize;
 use crate::psgt::{error, Error};
-use std::collections::btree_map::Entry;
-use std::collections::BTreeMap;
 
 const PSGT_OUTPUT_FEATURES: u8 = 0x00;
 const PSGT_COMMITMENT: u8 = 0x00;
@@ -73,6 +75,26 @@ impl Map for Output {
 			}
 		}
 
+		Ok(())
+	}
+
+	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
+		let mut rv: Vec<raw::Pair> = Default::default();
+
+		// TODO
+
+		for (key, value) in self.unknown.iter() {
+			rv.push(raw::Pair {
+				key: key.clone(),
+				value: value.clone(),
+			});
+		}
+
+		Ok(rv)
+	}
+
+	fn merge(&mut self, other: Self) -> Result<(), psgt::Error> {
+		// TODO
 		Ok(())
 	}
 }

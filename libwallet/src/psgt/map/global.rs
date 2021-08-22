@@ -21,6 +21,7 @@ use core::cmp;
 
 use crate::psgt;
 use crate::psgt::encode;
+use crate::psgt::encode::{Decodable};
 use crate::psgt::map::Map;
 use crate::psgt::raw;
 use crate::psgt::Error;
@@ -64,6 +65,7 @@ impl Map for Global {
 		Ok(())
 	}
 
+        /
 	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
 		let mut rv: Vec<raw::Pair> = Default::default();
 

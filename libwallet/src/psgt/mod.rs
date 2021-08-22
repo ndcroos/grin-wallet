@@ -37,7 +37,7 @@ use crate::grin_core::core::transaction::Transaction;
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct PartiallySignedTransaction {
 	/// The key-value pairs for all global data.
-	//pub global: Global,
+	pub global: Global,
 	/// The corresponding key-value map for each input in the unsigned
 	/// transaction.
 	pub inputs: Vec<Input>,
@@ -47,6 +47,7 @@ pub struct PartiallySignedTransaction {
 }
 
 impl PartiallySignedTransaction {
+
 	/// Create a PartiallySignedTransaction from an unsigned transaction, error
 	/// if not unsigned
 	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, self::Error> {

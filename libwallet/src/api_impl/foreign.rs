@@ -120,7 +120,7 @@ where
 	// Add our contribution to the offset
 	if hardware {
 		keykeeper.sign_receiver(slate);
-		//ledger.sign_receiver(&keychain, &context);
+	//ledger.sign_receiver(&keychain, &context);
 	} else {
 		ret_slate.adjust_offset(&keychain, &context)?;
 	}

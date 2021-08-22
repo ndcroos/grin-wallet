@@ -471,7 +471,7 @@ where
 		None => w.parent_key_id(),
 	};
 
-	if (args.hardware) {}
+	if args.hardware {}
 
 	let mut slate = tx::new_tx_slate(
 		&mut *w,

@@ -16,7 +16,7 @@
 
 //use prelude::*;
 use crate::psgt;
-use crate::psgt::encode::{self, deserialize, serialize, Decodable, Encodable};
+use crate::psgt::encode::{self, deserialize, serialize, Decodable, Encodable, VarInt};
 use crate::psgt::Error;
 use core::fmt;
 
@@ -48,5 +48,67 @@ impl fmt::Display for Key {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "type: {:#x}, key: ", self.type_value)?;
 		hex::format_hex(&self.key[..], f)
+	}
+}
+
+impl Decodable for Key {
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
+		let VarInt(byte_size): VarInt = Decodable::decode(&mut d)?;
+
+		if byte_size == 0 {
+			return Err(Error::NoMorePairs.into());
+		}
+
+		let key_byte_size: u64 = byte_size - 1;
+
+		if key_byte_size > MAX_VEC_SIZE as u64 {
+			return Err(encode::Error::OversizedVectorAllocation {
+				requested: key_byte_size as usize,
+				max: MAX_VEC_SIZE,
+			});
+		}
+
+		let type_value: u8 = Decodable::decode(&mut d)?;
+
+		let mut key = Vec::with_capacity(key_byte_size as usize);
+		for _ in 0..key_byte_size {
+			key.push(Decodable::decode(&mut d)?);
+		}
+
+		Ok(Key {
+			type_value: type_value,
+			key: key,
+		})
+	}
+}
+
+impl Encodable for Key {
+	fn encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
+		let mut len = 0;
+		len += VarInt((self.key.len() + 1) as u64).encode(&mut s)?;
+
+		len += self.type_value.encode(&mut s)?;
+
+		for key in &self.key {
+			len += key.encode(&mut s)?
+		}
+
+		Ok(len)
+	}
+}
+
+impl Encodable for Pair {
+	fn encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
+		let len = self.key.encode(&mut s)?;
+		Ok(len + self.value.encode(s)?)
+	}
+}
+
+impl Decodable for Pair {
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, encode::Error> {
+		Ok(Pair {
+			key: Decodable::decode(&mut d)?,
+			value: Decodable::decode(d)?,
+		})
 	}
 }
