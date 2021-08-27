@@ -14,6 +14,7 @@
 
 use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
+use std::io;
 
 use crate::grin_core::core::transaction::OutputFeatures;
 use crate::grin_core::libtx::secp_ser;

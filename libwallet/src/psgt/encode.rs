@@ -16,6 +16,7 @@
 //!
 
 use crate::psgt;
+use crate::psgt::endian;
 use core::{convert::From, fmt, mem, u32};
 use std::io::{self, Cursor, Read};
 
@@ -128,6 +129,27 @@ pub trait ReadExt {
 /// A variable-length unsigned integer
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct VarInt(pub u64);
+
+macro_rules! encoder_fn {
+	($name:ident, $val_type:ty, $writefn:ident) => {
+		#[inline]
+		fn $name(&mut self, v: $val_type) -> Result<(), io::Error> {
+			self.write_all(&endian::$writefn(v))
+		}
+	};
+}
+
+macro_rules! decoder_fn {
+	($name:ident, $val_type:ty, $readfn:ident, $byte_len: expr) => {
+		#[inline]
+		fn $name(&mut self) -> Result<$val_type, Error> {
+			debug_assert_eq!(::core::mem::size_of::<$val_type>(), $byte_len); // size_of isn't a constfn in 1.22
+			let mut val = [0; $byte_len];
+			self.read_exact(&mut val[..]).map_err(Error::Io)?;
+			Ok(endian::$readfn(&val))
+		}
+	};
+}
 
 impl fmt::Display for Error {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -259,6 +281,62 @@ impl From<io::Error> for Error {
 impl From<psgt::Error> for Error {
 	fn from(e: psgt::Error) -> Error {
 		Error::Psgt(e)
+	}
+}
+
+impl<W: io::Write> WriteExt for W {
+	encoder_fn!(emit_u64, u64, u64_to_array_le);
+	encoder_fn!(emit_u32, u32, u32_to_array_le);
+	encoder_fn!(emit_u16, u16, u16_to_array_le);
+	encoder_fn!(emit_i64, i64, i64_to_array_le);
+	encoder_fn!(emit_i32, i32, i32_to_array_le);
+	encoder_fn!(emit_i16, i16, i16_to_array_le);
+
+	#[inline]
+	fn emit_i8(&mut self, v: i8) -> Result<(), io::Error> {
+		self.write_all(&[v as u8])
+	}
+	#[inline]
+	fn emit_u8(&mut self, v: u8) -> Result<(), io::Error> {
+		self.write_all(&[v])
+	}
+	#[inline]
+	fn emit_bool(&mut self, v: bool) -> Result<(), io::Error> {
+		self.write_all(&[v as u8])
+	}
+	#[inline]
+	fn emit_slice(&mut self, v: &[u8]) -> Result<(), io::Error> {
+		self.write_all(v)
+	}
+}
+
+impl<R: Read> ReadExt for R {
+	decoder_fn!(read_u64, u64, slice_to_u64_le, 8);
+	decoder_fn!(read_u32, u32, slice_to_u32_le, 4);
+	decoder_fn!(read_u16, u16, slice_to_u16_le, 2);
+	decoder_fn!(read_i64, i64, slice_to_i64_le, 8);
+	decoder_fn!(read_i32, i32, slice_to_i32_le, 4);
+	decoder_fn!(read_i16, i16, slice_to_i16_le, 2);
+
+	#[inline]
+	fn read_u8(&mut self) -> Result<u8, Error> {
+		let mut slice = [0u8; 1];
+		self.read_exact(&mut slice)?;
+		Ok(slice[0])
+	}
+	#[inline]
+	fn read_i8(&mut self) -> Result<i8, Error> {
+		let mut slice = [0u8; 1];
+		self.read_exact(&mut slice)?;
+		Ok(slice[0] as i8)
+	}
+	#[inline]
+	fn read_bool(&mut self) -> Result<bool, Error> {
+		ReadExt::read_i8(self).map(|bit| bit != 0)
+	}
+	#[inline]
+	fn read_slice(&mut self, slice: &mut [u8]) -> Result<(), Error> {
+		self.read_exact(slice).map_err(Error::Io)
 	}
 }
 

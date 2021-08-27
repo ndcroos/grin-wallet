@@ -20,7 +20,7 @@ use crate::psgt::encode::{self, deserialize, serialize, Decodable, Encodable, Va
 use crate::psgt::Error;
 use core::fmt;
 
-//use io;
+use std::io;
 
 /// A PSGT key in its raw byte form.
 #[derive(Debug, PartialEq, Hash, Eq, Clone, Ord, PartialOrd)]
