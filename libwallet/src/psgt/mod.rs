@@ -27,6 +27,8 @@ pub mod serialize;
 
 pub mod encode;
 
+pub mod endian;
+
 mod map;
 pub use self::map::{Global, Input, Map, Output};
 
@@ -47,7 +49,6 @@ pub struct PartiallySignedTransaction {
 }
 
 impl PartiallySignedTransaction {
-
 	/// Create a PartiallySignedTransaction from an unsigned transaction, error
 	/// if not unsigned
 	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, self::Error> {
