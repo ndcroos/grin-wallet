@@ -22,11 +22,15 @@ use core::cmp;
 use crate::psgt;
 use crate::psgt::encode;
 use crate::psgt::encode::Decodable;
+use crate::psgt::endian;
 use crate::psgt::map::Map;
 use crate::psgt::raw;
 use crate::psgt::Error;
 
-const PSGT_VERSION: u8 = 0x00;
+/// Type: Unsigned Transaction PSGT_GLOBAL_UNSIGNED_TX = 0x00
+const PSGT_GLOBAL_UNSIGNED_TX: u8 = 0x00;
+/// Type: Version Number PSBT_GLOBAL_VERSION = 0x01
+const PSGT_GLOBAL_VERSION: u8 = 0x01;
 
 /// A key-value map for global data.
 #[derive(Clone, Debug, PartialEq)]
@@ -61,10 +65,10 @@ impl Map for Global {
 				}
 			},
 		}
-
 		Ok(())
 	}
 
+	// TODO
 	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
 		let mut rv: Vec<raw::Pair> = Default::default();
 
@@ -74,12 +78,7 @@ impl Map for Global {
 				key: vec![],
 			},
 			value: {
-				// Manually serialized to ensure 0-input txs are serialized
-				// without witnesses.
 				let mut ret = Vec::new();
-				self.unsigned_tx.version.encode(&mut ret)?;
-				self.unsigned_tx.input.encode(&mut ret)?;
-				self.unsigned_tx.output.encode(&mut ret)?;
 				ret
 			},
 		});

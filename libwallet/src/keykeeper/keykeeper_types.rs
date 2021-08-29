@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//!
+//! Types associated with keykeeper
 
 use crate::grin_core::core::{Input, Output, TxKernel};
 use crate::grin_keychain::BlindingFactor;
 use crate::slate::PaymentInfo;
 
 trait KeyKeeper {
-	fn get_num_slots() -> ();
+	fn get_num_slots(&mut self) -> Result<(), Error>;
 }
 
 pub struct Slot {}

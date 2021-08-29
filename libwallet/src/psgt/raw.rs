@@ -15,7 +15,9 @@
 //! #
 
 use crate::psgt;
-use crate::psgt::encode::{self, deserialize, serialize, Decodable, Encodable, VarInt};
+use crate::psgt::encode::{
+	self, deserialize, serialize, Decodable, Encodable, VarInt, MAX_VEC_SIZE,
+};
 use crate::psgt::Error;
 use core::fmt;
 

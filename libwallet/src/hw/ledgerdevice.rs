@@ -37,11 +37,13 @@ use crate::slate::{PaymentInfo, Slate};
 
 // Different instructions
 // TODO
+
 const INS_GET_VERSION: u8 = 0x03;
 const INS_GET_APP_NAME: u8 = 0x04;
 const INS_DEVICE_RESET: u8 = 0x05;
 //const INS_PUT_KEY: u8 = 0x06;
 //const INS_APP_INFO: u8 = 0x07;
+const INS_GET_NUM_SLOTS: u8 = 0x08;
 //const INS_GEN_KEY_DERIVATION: u8 = 0x00;
 //const INS_GENERATE_KEYPAIR: u8 = 0x00;
 //const INS_RESET: u8 = 0x00;
@@ -82,7 +84,7 @@ impl LedgerDevice {
 	}
 
 	///
-	pub fn connect(&mut self) -> Result<(), Error> {
+	fn connect(&mut self) -> Result<(), Error> {
 		LedgerDevice::disconnect(self);
 		//connect();
 		LedgerDevice::reset(self);
@@ -91,12 +93,12 @@ impl LedgerDevice {
 	}
 
 	///
-	pub fn connected(&mut self) -> bool {
+	fn connected(&mut self) -> bool {
 		return false;
 	}
 
 	///
-	pub fn disconnect(&mut self) -> Result<(), Error> {
+	fn disconnect(&mut self) -> Result<(), Error> {
 		Ok(())
 	}
 
@@ -131,7 +133,7 @@ impl LedgerDevice {
 	}
 
 	/// Set command with optional data.
-	pub fn set_command_header(
+	fn set_command_header(
 		&mut self,
 		instruction: u8,
 		p1: u8,
@@ -149,7 +151,7 @@ impl LedgerDevice {
 	}
 
 	/// Set command with no optional data.
-	pub fn set_command_header_noopt(&mut self, instruction: u8, p1: u8, p2: u8) -> APDUCommand {
+	fn set_command_header_noopt(&mut self, instruction: u8, p1: u8, p2: u8) -> APDUCommand {
 		let cmd = APDUCommand {
 			cla: PROTOCOL_VERSION,
 			ins: instruction,
@@ -224,6 +226,24 @@ impl LedgerDevice {
 
 		let app_name = str::from_utf8(app_name_bytes).map_err(|_e| LedgerAppError::Utf8)?;
 		println!("app_name: {:?}", app_name);
+		Ok(())
+	}
+
+	///
+	pub fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
+		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
+		let cmd = APDUCommand {
+			cla: 0xE0,
+			ins: INS_GET_NUM_SLOTS,
+			p1: 0x00,
+			p2: 0x00,
+			data: Vec::new(),
+		};
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = map_apdu_error_description(response.retcode);
+		let num_slots_bytes = &response.data[0..4];
+		println!("num_slots_bytes: {:?}", app_name_bytes);
+		println!("num_slots: {:?}", app_name);
 		Ok(())
 	}
 
@@ -304,10 +324,6 @@ impl LedgerDevice {
 		//kernel_commitment
 		//pubnonce
 
-		Ok(())
-	}
-
-	pub fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
 		Ok(())
 	}
 }

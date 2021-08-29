@@ -23,22 +23,20 @@ pub struct LedgerKeyKeeper {
 	ledger: LedgerDevice,
 }
 
-/*
 impl KeyKeeper for LedgerKeyKeeper {
+	// Send instruction for getting the number of slots
+	pub fn get_num_slots(&mut self) -> Result<(), Error> {
+		self.ledger.get_num_slots();
 
-
+		Ok(())
+	}
 }
-*/
 
 impl LedgerKeyKeeper {
 	pub fn new() -> LedgerKeyKeeper {
 		LedgerKeyKeeper {
 			ledger: LedgerDevice::new(),
 		}
-	}
-
-	pub fn get_num_slots(&mut self) -> Result<(), Error> {
-		Ok(())
 	}
 
 	// fee: from estimate_send_tx
@@ -69,6 +67,4 @@ impl LedgerKeyKeeper {
 		//self.ledger.sign_finalize();
 		Ok(())
 	}
-
-	// TODO: finalize in separate method?
 }

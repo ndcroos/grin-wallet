@@ -56,8 +56,10 @@ pub enum Error {
 	ParseFailed(&'static str),
 }
 
-// TODO, consensus
-/// Data which can be encoded in a consensus-consistent way
+/// Maximum size, in bytes, of a vector we are allowed to decode
+pub const MAX_VEC_SIZE: usize = 4_000_000;
+
+/// Data which can be encoded
 pub trait Encodable {
 	/// Encode an object with a well-defined format.
 	/// Returns the number of bytes written on success.
@@ -70,6 +72,106 @@ pub trait Encodable {
 pub trait Decodable: Sized {
 	/// Decode an object with a well-defined format
 	fn decode<D: io::Read>(d: D) -> Result<Self, Error>;
+}
+
+impl_int_encodable!(u8, read_u8, emit_u8);
+impl_int_encodable!(u16, read_u16, emit_u16);
+impl_int_encodable!(u32, read_u32, emit_u32);
+impl_int_encodable!(u64, read_u64, emit_u64);
+impl_int_encodable!(i8, read_i8, emit_i8);
+impl_int_encodable!(i16, read_i16, emit_i16);
+impl_int_encodable!(i32, read_i32, emit_i32);
+impl_int_encodable!(i64, read_i64, emit_i64);
+
+impl Decodable for [u16; 8] {
+	#[inline]
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+		let mut res = [0; 8];
+		for item in &mut res {
+			*item = Decodable::decode(&mut d)?;
+		}
+		Ok(res)
+	}
+}
+
+impl Encodable for [u16; 8] {
+	#[inline]
+	fn encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
+		for c in self.iter() {
+			c.encode(&mut s)?;
+		}
+		Ok(16)
+	}
+}
+
+// Vectors
+macro_rules! impl_vec {
+	($type: ty) => {
+		impl Encodable for Vec<$type> {
+			#[inline]
+			fn encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
+				let mut len = 0;
+				len += VarInt(self.len() as u64).encode(&mut s)?;
+				for c in self.iter() {
+					len += c.encode(&mut s)?;
+				}
+				Ok(len)
+			}
+		}
+		impl Decodable for Vec<$type> {
+			#[inline]
+			fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+				let len = VarInt::decode(&mut d)?.0;
+				let byte_size = (len as usize)
+					.checked_mul(mem::size_of::<$type>())
+					.ok_or(self::Error::ParseFailed("Invalid length"))?;
+				if byte_size > MAX_VEC_SIZE {
+					return Err(self::Error::OversizedVectorAllocation {
+						requested: byte_size,
+						max: MAX_VEC_SIZE,
+					});
+				}
+				let mut ret = Vec::with_capacity(len as usize);
+				let mut d = d.take(MAX_VEC_SIZE as u64);
+				for _ in 0..len {
+					ret.push(Decodable::decode(&mut d)?);
+				}
+				Ok(ret)
+			}
+		}
+	};
+}
+impl_vec!(Vec<u8>);
+impl_vec!(u64);
+
+impl Decodable for Vec<u8> {
+	#[inline]
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+		let len = VarInt::decode(&mut d)?.0 as usize;
+		if len > MAX_VEC_SIZE {
+			return Err(self::Error::OversizedVectorAllocation {
+				requested: len,
+				max: MAX_VEC_SIZE,
+			});
+		}
+		let mut ret = vec![0u8; len];
+		d.read_slice(&mut ret)?;
+		Ok(ret)
+	}
+}
+
+impl Encodable for Box<[u8]> {
+	#[inline]
+	fn encode<S: io::Write>(&self, s: S) -> Result<usize, io::Error> {
+		encode_with_size(self, s)
+	}
+}
+
+impl Decodable for Box<[u8]> {
+	#[inline]
+	fn decode<D: io::Read>(d: D) -> Result<Self, Error> {
+		<Vec<u8>>::decode(d).map(From::from)
+	}
 }
 
 /// Extensions of `Write` to encode data

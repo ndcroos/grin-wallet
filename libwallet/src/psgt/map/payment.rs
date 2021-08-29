@@ -14,5 +14,37 @@
 
 //! Payment proof voor PSGT
 
+use crate::psgt;
+use crate::psgt::encode;
+use crate::psgt::map::Map;
+use crate::psgt::raw;
+use std::io;
+
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Payment {}
+
+impl Map for Payment {
+	fn insert_pair(&mut self, pair: raw::Pair) -> Result<(), encode::Error> {
+		Ok(())
+	}
+
+	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
+		let mut rv: Vec<raw::Pair> = Default::default();
+
+		// TODO
+		/*
+		for (key, value) in self.unknown.iter() {
+			rv.push(raw::Pair {
+				key: key.clone(),
+				value: value.clone(),
+			});
+		}
+				*/
+		Ok(rv)
+	}
+
+	fn merge(&mut self, other: Self) -> Result<(), psgt::Error> {
+		// TODO
+		Ok(())
+	}
+}
