@@ -16,9 +16,10 @@
 
 use crate::grin_core::core::{Input, Output, TxKernel};
 use crate::grin_keychain::BlindingFactor;
+use crate::hw::ledger_error::Error;
 use crate::slate::PaymentInfo;
 
-trait KeyKeeper {
+pub trait KeyKeeper {
 	fn get_num_slots(&mut self) -> Result<(), Error>;
 }
 

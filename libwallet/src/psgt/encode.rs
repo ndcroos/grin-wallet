@@ -74,6 +74,25 @@ pub trait Decodable: Sized {
 	fn decode<D: io::Read>(d: D) -> Result<Self, Error>;
 }
 
+// Primitive types
+macro_rules! impl_int_encodable {
+	($ty:ident, $meth_dec:ident, $meth_enc:ident) => {
+		impl Decodable for $ty {
+			#[inline]
+			fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+				ReadExt::$meth_dec(&mut d)
+			}
+		}
+		impl Encodable for $ty {
+			#[inline]
+			fn encode<S: WriteExt>(&self, mut s: S) -> Result<usize, io::Error> {
+				s.$meth_enc(*self)?;
+				Ok(mem::size_of::<$ty>())
+			}
+		}
+	};
+}
+
 impl_int_encodable!(u8, read_u8, emit_u8);
 impl_int_encodable!(u16, read_u16, emit_u16);
 impl_int_encodable!(u32, read_u32, emit_u32);
@@ -82,6 +101,12 @@ impl_int_encodable!(i8, read_i8, emit_i8);
 impl_int_encodable!(i16, read_i16, emit_i16);
 impl_int_encodable!(i32, read_i32, emit_i32);
 impl_int_encodable!(i64, read_i64, emit_i64);
+
+fn encode_with_size<S: io::Write>(data: &[u8], mut s: S) -> Result<usize, io::Error> {
+	let vi_len = VarInt(data.len() as u64).encode(&mut s)?;
+	s.emit_slice(&data)?;
+	Ok(vi_len + data.len())
+}
 
 impl Decodable for [u16; 8] {
 	#[inline]

@@ -14,7 +14,7 @@
 
 //! Keykeeper interface for Ledger hardware wallet.
 
-//use crate::keykeeper::{keykeeper_types};
+use crate::keykeeper_types::{KeyKeeper};
 use crate::hw::LedgerDevice;
 use crate::slate::Slate;
 use crate::{Error, ErrorKind};
@@ -24,15 +24,22 @@ pub struct LedgerKeyKeeper {
 }
 
 impl KeyKeeper for LedgerKeyKeeper {
-	// Send instruction for getting the number of slots
-	pub fn get_num_slots(&mut self) -> Result<(), Error> {
-		self.ledger.get_num_slots();
 
-		Ok(())
+        // Send instruction for getting the number of slots
+	fn get_num_slots(&mut self) -> Result<(), Error> {
+            let slotsCount = self.ledger.get_num_slots();
+            Ok(())
 	}
+
+        fn get_rangeproof(&mut self) -> Result<(), Error> {
+
+            Ok(())
+        }
+
 }
 
 impl LedgerKeyKeeper {
+
 	pub fn new() -> LedgerKeyKeeper {
 		LedgerKeyKeeper {
 			ledger: LedgerDevice::new(),
@@ -54,17 +61,20 @@ impl LedgerKeyKeeper {
 		let fee = slate.fee_fields;
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
-		//self.ledger.sign_sender(inputsOutputs );
+		self.ledger.sign_sender(inputsOutputs );
 		Ok(())
 	}
 
 	pub fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error> {
-		//self.ledger.sign_receiver();
+                slate
+		self.ledger.sign_receiver();
 		Ok(())
 	}
 
 	pub fn sign_finalize(&mut self, slate: &Slate) -> Result<(), Error> {
-		//self.ledger.sign_finalize();
+                slate
+		self.ledger.sign_finalize();
 		Ok(())
 	}
+
 }

@@ -20,6 +20,7 @@ use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::{Error, LedgerAppError};
 use crate::hw::ledger_types::*;
 use crate::hw::transportnativehid::*;
+
 use std::str;
 
 use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
@@ -230,7 +231,9 @@ impl LedgerDevice {
 	}
 
 	///
-	pub fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
+	pub async fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
+		let _ledger = TransportNativeHID::new().expect("Could not get a device");
+		let apdu_transport = APDUTransport::new(_ledger);
 		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
 		let cmd = APDUCommand {
 			cla: 0xE0,
@@ -241,9 +244,10 @@ impl LedgerDevice {
 		};
 		let response = apdu_transport.exchange(&cmd).await?;
 		let description = map_apdu_error_description(response.retcode);
-		let num_slots_bytes = &response.data[0..4];
-		println!("num_slots_bytes: {:?}", app_name_bytes);
-		println!("num_slots: {:?}", app_name);
+		let num_slots_bytes = &response.data[0..4]; // TODO
+		let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
+		println!("num_slots_bytes: {:?}", num_slots_bytes);
+		println!("num_slots: {:?}", num_slots);
 		Ok(())
 	}
 
