@@ -230,12 +230,12 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-	///
+        /// 
 	pub async fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
-		let _ledger = TransportNativeHID::new().expect("Could not get a device");
+                let _ledger = TransportNativeHID::new().expect("Could not get a device");
 		let apdu_transport = APDUTransport::new(_ledger);
-		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
-		let cmd = APDUCommand {
+                //let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
+                let cmd = APDUCommand {
 			cla: 0xE0,
 			ins: INS_GET_NUM_SLOTS,
 			p1: 0x00,
@@ -245,7 +245,7 @@ impl LedgerDevice {
 		let response = apdu_transport.exchange(&cmd).await?;
 		let description = map_apdu_error_description(response.retcode);
 		let num_slots_bytes = &response.data[0..4]; // TODO
-		let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
+                let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
 		println!("num_slots_bytes: {:?}", num_slots_bytes);
 		println!("num_slots: {:?}", num_slots);
 		Ok(())
@@ -330,6 +330,31 @@ impl LedgerDevice {
 
 		Ok(())
 	}
+
+/*
+	pub async fn sign_finalize<K: Keychain>(
+		&mut self,
+		keychain: &K,
+		context: &Context,
+		inputs_outputs: InputsOutputs,
+	) -> Result<(), LedgerAppError> {
+
+
+        }
+*/
+
+	pub async fn sign_finalize(
+		&mut self,
+	) -> Result<(), LedgerAppError> {
+
+            Ok(())
+        }
+
+	/// Returns payment nonce, proof signature,
+	pub async fn get_rangeproof(
+		&mut self
+	) -> Result<(), LedgerAppError> {
+
 }
 
 /// Translate a retcode into an error message.
@@ -438,7 +463,7 @@ pub async fn send_chunks(
 		if response.retcode != 0x9000 {
 			return Err(LedgerAppError::AppSpecific(
 				response.retcode,
-				map_apdu_error_description(response.retcode).to_string(),
+				self.map_apdu_error_description(response.retcode).to_string(),
 			));
 		}
 	}

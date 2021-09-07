@@ -25,14 +25,13 @@ pub struct LedgerKeyKeeper {
 
 impl KeyKeeper for LedgerKeyKeeper {
 
-        // Send instruction for getting the number of slots
 	fn get_num_slots(&mut self) -> Result<(), Error> {
-            let slotsCount = self.ledger.get_num_slots();
+            let slotsCount = self.ledger.get_num_slots(self);
             Ok(())
 	}
 
         fn get_rangeproof(&mut self) -> Result<(), Error> {
-
+            self.ledger.get_rangeproof(self);
             Ok(())
         }
 
@@ -48,7 +47,7 @@ impl LedgerKeyKeeper {
 
 	// fee: from estimate_send_tx
 	pub fn sign_sender(&mut self, slate: &Slate, height: u64) -> Result<(), Error> {
-		// Inputs and outputs
+		// Get inputs and outputs
 
 		let tx_body = slate.tx.as_ref().expect("Error getting transaction body.");
 		/*
@@ -61,18 +60,21 @@ impl LedgerKeyKeeper {
 		let fee = slate.fee_fields;
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
-		self.ledger.sign_sender(inputsOutputs );
+                let sender_input_params = new SenderInputParams;
+		self.ledger.sign_sender(inputsOutputs, sender_input_params);
 		Ok(())
 	}
 
 	pub fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error> {
-                slate
-		self.ledger.sign_receiver();
+                let tx_body = slate.tx.as_ref().expect("Error getting transaction body.");
+		let inputs = tx_body.inputs?;
+		let outputs = tx_body.outputs?;
+		self.ledger.sign_receiver(inputs, outputs, kernel);
 		Ok(())
 	}
 
 	pub fn sign_finalize(&mut self, slate: &Slate) -> Result<(), Error> {
-                slate
+                //slate
 		self.ledger.sign_finalize();
 		Ok(())
 	}
