@@ -52,6 +52,7 @@ const INS_GET_NUM_SLOTS: u8 = 0x08;
 
 const INS_SEND: u8 = 0x0B;
 const INS_RECEIVE: u8 = 0x0C; // TODO
+const INS_GET_RANGEPROOF: u8 = 0x0D; // TODO
 
 // Constants
 const PROTOCOL_VERSION: u8 = 4;
@@ -296,7 +297,10 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
-		inputs_outputs: InputsOutputs,
+		//inputs_outputs: InputsOutputs,
+                inputs: Inputs,
+                outputs: Vec<Output>,
+                kernels: Vec<TxKernel>,
 	) -> Result<(), LedgerAppError> {
 		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
 
@@ -355,6 +359,27 @@ impl LedgerDevice {
 		&mut self
 	) -> Result<(), LedgerAppError> {
 
+            let tx_info = Vec::new();
+            let cmd = APDUCommand {
+		cla: 0xE0,
+		ins: INS_GET_RANGEPROOF,
+		p1: 0x00,
+		p2: 0x00,
+		data: tx_info,
+            };
+
+		/*
+				let response = apdu_transport.exchange(&cmd).await?;
+				if response.retcode != APDUErrorCodes::NoError as u16 {
+					return Err(LedgerAppError::TransportError(
+						TransportError::APDUExchangeError,
+					));
+				}
+		*/
+
+            Ok(())
+        }
+
 }
 
 /// Translate a retcode into an error message.
@@ -411,6 +436,7 @@ fn reset() -> bool {
 
 /// Stream a long request in chunks
 pub async fn send_chunks(
+        mut &self, 
 	apdu_transport: &APDUTransport,
 	start_command: &APDUCommand,
 	message: &[u8],

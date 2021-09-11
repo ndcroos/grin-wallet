@@ -17,20 +17,18 @@
 use crate::grin_core::core::{Input, Output, TxKernel};
 use crate::grin_keychain::BlindingFactor;
 use crate::slate::PaymentInfo;
-use crate::hw::ledger_error::{Error};
+//use crate::hw::ledger_error::{Error};
+use crate::{Error, ErrorKind};
 
 pub trait KeyKeeper {
-
-        // Send instruction for getting the number of slots
+	// Send instruction for getting the number of slots
 	fn get_num_slots(&mut self) -> Result<(), Error>;
 
-        //
-        fn get_rangeproof(&mut self) -> Result<(), Error> 
+	//
+	fn get_rangeproof(&mut self) -> Result<(), Error>;
 }
 
-pub struct Slot {
-
-}
+pub struct Slot {}
 
 /// Store inputs and outputs
 pub struct InputsOutputs {

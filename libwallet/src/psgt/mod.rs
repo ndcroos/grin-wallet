@@ -53,8 +53,8 @@ impl PartiallySignedTransaction {
 	/// if not unsigned
 	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, self::Error> {
 		Ok(PartiallySignedTransaction {
-			inputs: vec![Default::default(); tx.input.len()],
-			outputs: vec![Default::default(); tx.output.len()],
+			inputs: vec![Default::default(); tx.body.inputs.len()],
+			outputs: vec![Default::default(); tx.body.outputs.len()],
 			global: Global::from_unsigned_tx(tx)?,
 		})
 	}

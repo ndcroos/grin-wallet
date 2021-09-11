@@ -26,12 +26,12 @@ pub struct LedgerKeyKeeper {
 impl KeyKeeper for LedgerKeyKeeper {
 
 	fn get_num_slots(&mut self) -> Result<(), Error> {
-            let slotsCount = self.ledger.get_num_slots(self);
+            let slotsCount = self.ledger.get_num_slots();
             Ok(())
 	}
 
         fn get_rangeproof(&mut self) -> Result<(), Error> {
-            self.ledger.get_rangeproof(self);
+            self.ledger.get_rangeproof();
             Ok(())
         }
 
@@ -49,7 +49,11 @@ impl LedgerKeyKeeper {
 	pub fn sign_sender(&mut self, slate: &Slate, height: u64) -> Result<(), Error> {
 		// Get inputs and outputs
 
-		let tx_body = slate.tx.as_ref().expect("Error getting transaction body.");
+		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
+                let tx_body = tx.body;
+		let inputs = tx_body.inputs;
+		let outputs = tx_body.outputs;
+                let kernels = tx_body.kernels;
 		/*
 				let mut inputs_outputs : InputsOutputs = InputsOutputs {
 					inputs: match slate { tx.body.inputs?,
@@ -61,15 +65,17 @@ impl LedgerKeyKeeper {
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
                 let sender_input_params = new SenderInputParams;
-		self.ledger.sign_sender(inputsOutputs, sender_input_params);
+		self.ledger.sign_sender(inputs, outputs, kernels, sender_input_params);
 		Ok(())
 	}
 
 	pub fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error> {
-                let tx_body = slate.tx.as_ref().expect("Error getting transaction body.");
-		let inputs = tx_body.inputs?;
-		let outputs = tx_body.outputs?;
-		self.ledger.sign_receiver(inputs, outputs, kernel);
+                let tx = slate.tx.as_ref().expect("Error getting transaction body.");
+                let tx_body = tx.body;
+		let inputs = tx_body.inputs;
+		let outputs = tx_body.outputs;
+                let kernels = tx_body.kernels;
+		self.ledger.sign_receiver(inputs, outputs, kernels);
 		Ok(())
 	}
 
