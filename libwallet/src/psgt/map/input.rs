@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+use std::collections::BTreeMap;
 use std::io;
 
 use crate::grin_core::core::transaction::OutputFeatures;
@@ -40,6 +41,13 @@ pub struct Input {
 		deserialize_with = "secp_ser::commitment_from_hex"
 	)]
 	pub commit: pedersen::Commitment,
+	/// Unknown key-value pairs for this input.
+	/// TODO
+	#[cfg_attr(
+		feature = "serde",
+		serde(with = "::serde_utils::btreemap_as_seq_byte_values")
+	)]
+	pub unknown: BTreeMap<raw::Key, Vec<u8>>,
 }
 
 impl Map for Input {

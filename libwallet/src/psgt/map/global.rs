@@ -46,7 +46,17 @@ pub struct Global {
 	pub unknown: BTreeMap<raw::Key, Vec<u8>>,
 }
 
-impl Global {}
+impl Global {
+	/// Create a Global from an unsigned transaction, error if not unsigned
+	fn from_unsigned_tx(tx: Transaction) -> Result<Self, psgt::Error> {
+		for txin in &tx.input {}
+
+		Ok(Global {
+			unsigned_tx: tx,
+			unknown: Default::default(),
+		})
+	}
+}
 
 impl Map for Global {
 	fn insert_pair(&mut self, pair: raw::Pair) -> Result<(), encode::Error> {

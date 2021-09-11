@@ -14,7 +14,7 @@
 
 //! Keykeeper interface for Ledger hardware wallet.
 
-use crate::keykeeper_types::{KeyKeeper};
+use crate::keykeeper_types::{KeyKeeper, SenderInputParams};
 use crate::hw::LedgerDevice;
 use crate::slate::Slate;
 use crate::{Error, ErrorKind};
@@ -64,7 +64,7 @@ impl LedgerKeyKeeper {
 		let fee = slate.fee_fields;
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
-                let sender_input_params = new SenderInputParams;
+                let sender_input_params = new SenderInputParams();
 		self.ledger.sign_sender(inputs, outputs, kernels, sender_input_params);
 		Ok(())
 	}

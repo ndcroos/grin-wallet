@@ -20,6 +20,7 @@ use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::{Error, LedgerAppError};
 use crate::hw::ledger_types::*;
 use crate::hw::transportnativehid::*;
+use crate::grin_core::core::{Inputs, Output, TxKernel};
 
 use std::str;
 
@@ -380,7 +381,6 @@ impl LedgerDevice {
             Ok(())
         }
 
-}
 
 /// Translate a retcode into an error message.
 pub fn map_apdu_error_description(retcode: u16) -> &'static str {
@@ -401,38 +401,6 @@ pub fn map_apdu_error_description(retcode: u16) -> &'static str {
 		_ => "[APDU_ERROR] Unknown",
 	}
 }
-
-/// Only used for testing purposes. Set specific key on device.
-fn put_keys() -> () {
-	/*
-		let command = APDUCommand {
-			cla: PROTOCOL_VERSION,
-			ins: INS_PUT_KEY,
-			p1: 0x00,
-			p2: 0x00,
-			data: Vec::new(),
-		};
-	*/
-
-	// exchange
-}
-
-/* Restart application. Check client and app compatibility. */
-/*
-fn reset() -> bool {
-	let command = APDUCommand {
-		cla: PROTOCOL_VERSION,
-		ins: INS_DEVICE_RESET,
-		p1: 0x00,
-		p2: 0x00,
-		data: Vec::new(),
-	};
-
-	// exchange
-
-	return true;
-}
-*/
 
 /// Stream a long request in chunks
 pub async fn send_chunks(
@@ -497,3 +465,39 @@ pub async fn send_chunks(
 	// If we get to here, return the response.
 	Ok(response)
 }
+
+}
+
+
+
+/// Only used for testing purposes. Set specific key on device.
+fn put_keys() -> () {
+	/*
+		let command = APDUCommand {
+			cla: PROTOCOL_VERSION,
+			ins: INS_PUT_KEY,
+			p1: 0x00,
+			p2: 0x00,
+			data: Vec::new(),
+		};
+	*/
+
+	// exchange
+}
+
+/* Restart application. Check client and app compatibility. */
+/*
+fn reset() -> bool {
+	let command = APDUCommand {
+		cla: PROTOCOL_VERSION,
+		ins: INS_DEVICE_RESET,
+		p1: 0x00,
+		p2: 0x00,
+		data: Vec::new(),
+	};
+
+	// exchange
+
+	return true;
+}
+*/
