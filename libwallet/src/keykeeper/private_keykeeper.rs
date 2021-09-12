@@ -14,16 +14,19 @@
 
 //! General interface that should by implemented by a software keykeeper, or an interface that interacts with a hardware wallet.
 
+use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
 use crate::slate::Slate;
-use crate::{Error, ErrorKind};
+//use crate::{Error, ErrorKind};
+use crate::keykeeper_types::{KeyKeeper, SenderInputParams, TransactionData};
+use crate::Error;
 
 pub trait PrivateKeyKeeper {
 	//
-	fn sign_sender(&mut self, slate: &Slate) -> Result<(), Error>;
+	fn sign_sender(&mut self, slate: &Slate, data: TransactionData) -> Result<(), Error>;
 
 	//
-	fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error>;
+	fn sign_receiver(&mut self, slate: &Slate, data: TransactionData) -> Result<(), Error>;
 
 	//
-	fn sign_finalize(&mut self, slate: &Slate) -> Result<(), Error>;
+	fn sign_finalize(&mut self, slate: &Slate, data: TransactionData) -> Result<(), Error>;
 }

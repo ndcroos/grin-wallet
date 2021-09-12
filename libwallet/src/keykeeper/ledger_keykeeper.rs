@@ -16,10 +16,10 @@
 
 use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
 use crate::hw::LedgerDevice;
-use crate::keykeeper_types::{KeyKeeper, SenderInputParams};
+use crate::keykeeper_types::{KeyKeeper, SenderInputParams, TransactionData};
 use crate::slate::Slate;
 use crate::types::Context;
-use crate::{Error, ErrorKind};
+use crate::Error;
 
 pub struct LedgerKeyKeeper {
 	ledger: LedgerDevice,
@@ -45,7 +45,12 @@ impl LedgerKeyKeeper {
 	}
 
 	// fee: from estimate_send_tx
-	pub fn sign_sender<K: Keychain>(&mut self, slate: &Slate, height: u64) -> Result<(), Error> {
+	pub fn sign_sender<K: Keychain>(
+		&mut self,
+		keychain: &K,
+		slate: &Slate,
+		height: u64,
+	) -> Result<(), Error> {
 		let keychain = w.keychain(keychain_mask)?;
 
 		// Get inputs and outputs
@@ -54,6 +59,13 @@ impl LedgerKeyKeeper {
 		let inputs = tx_body.inputs;
 		let outputs = tx_body.outputs;
 		let kernels = tx_body.kernels;
+		let data = TransactionData {
+			inputs: inputs,
+			outputs: outputs,
+			kernels: kernels,
+			tko: None,
+			proof_sig: None,
+		};
 
 		/*
 				let mut inputs_outputs : InputsOutputs = InputsOutputs {
@@ -66,9 +78,8 @@ impl LedgerKeyKeeper {
 		let fee = slate.fee_fields;
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
-		let sender_input_params = SenderInputParams();
-		self.ledger
-			.sign_sender(keychain, inputs, outputs, kernels, sender_input_params);
+		let sender_input_params = SenderInputParams {};
+		self.ledger.sign_sender(keychain, data, sender_input_params);
 
 		Ok(())
 	}
@@ -81,8 +92,14 @@ impl LedgerKeyKeeper {
 		let inputs = tx_body.inputs;
 		let outputs = tx_body.outputs;
 		let kernels = tx_body.kernels;
-		self.ledger
-			.sign_receiver(keychain, inputs, outputs, kernels);
+		let data = TransactionData {
+			inputs: inputs,
+			outputs: outputs,
+			kernels: kernels,
+			tko: None,
+			proof_sig: None,
+		};
+		self.ledger.sign_receiver(keychain, data);
 
 		Ok(())
 	}
@@ -96,9 +113,14 @@ impl LedgerKeyKeeper {
 		let outputs = tx_body.outputs;
 		let kernels = tx_body.kernels;
 		//slate
-
-		self.ledger
-			.sign_finalize(keychain, inputs, outputs, kernels);
+		let data = TransactionData {
+			inputs: inputs,
+			outputs: outputs,
+			kernels: kernels,
+			tko: None,
+			proof_sig: None,
+		};
+		self.ledger.sign_finalize(keychain, data);
 
 		Ok(())
 	}

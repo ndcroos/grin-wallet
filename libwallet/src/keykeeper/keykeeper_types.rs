@@ -14,7 +14,7 @@
 
 //! Types associated with keykeeper
 
-use crate::grin_core::core::{Input, Output, TxKernel};
+use crate::grin_core::core::{Input, Inputs, Output, TxKernel};
 use crate::grin_keychain::BlindingFactor;
 use crate::slate::PaymentInfo;
 //use crate::hw::ledger_error::{Error};
@@ -42,11 +42,11 @@ pub struct InputsOutputs {
 */
 
 pub struct TransactionData {
-	inputs: Inputs,
-	outputs: Vec<Output>,
-	kernels: Vec<TxKernel>,
-	tko: BlindingFactor, // Transaction kernel offset
-	proof_sig: Option<PaymentInfo>,
+	pub inputs: Inputs,
+	pub outputs: Vec<Output>,
+	pub kernels: Vec<TxKernel>,
+	pub tko: BlindingFactor, // Transaction kernel offset
+	pub proof_sig: Option<PaymentInfo>,
 }
 
 // todo: put somewhere else

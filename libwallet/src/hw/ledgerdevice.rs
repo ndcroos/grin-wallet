@@ -16,12 +16,14 @@
 
 use bincode;
 
+use crate::grin_core::core::transaction::Transaction;
+use crate::grin_core::core::{Inputs, Output, TxKernel};
 use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::{Error, LedgerAppError};
 use crate::hw::ledger_types::*;
 use crate::hw::transportnativehid::*;
-use crate::grin_core::core::{Inputs, Output, TxKernel};
 
+use std::collections::BTreeMap;
 use std::str;
 
 use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
@@ -34,7 +36,10 @@ use ed25519_dalek::PublicKey as DalekPublicKey;
 use ed25519_dalek::Signature as DalekSignature;
 
 use crate::grin_keychain::Identifier;
-use crate::keykeeper::{InputsOutputs, SenderInputParams};
+use crate::keykeeper::SenderInputParams;
+use crate::keykeeper_types::TransactionData;
+use crate::psgt::encode::{deserialize, serialize, serialize_hex};
+use crate::psgt::*;
 use crate::slate::{PaymentInfo, Slate};
 
 // Different instructions
@@ -232,12 +237,12 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-        /// 
+	///
 	pub async fn get_num_slots(&mut self) -> Result<(), LedgerAppError> {
-                let _ledger = TransportNativeHID::new().expect("Could not get a device");
+		let _ledger = TransportNativeHID::new().expect("Could not get a device");
 		let apdu_transport = APDUTransport::new(_ledger);
-                //let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
-                let cmd = APDUCommand {
+		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_GET_NUM_SLOTS, 0x00, 0x00);
+		let cmd = APDUCommand {
 			cla: 0xE0,
 			ins: INS_GET_NUM_SLOTS,
 			p1: 0x00,
@@ -247,45 +252,44 @@ impl LedgerDevice {
 		let response = apdu_transport.exchange(&cmd).await?;
 		let description = self.map_apdu_error_description(response.retcode);
 		let num_slots_bytes = &response.data[0..4]; // TODO
-                let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
+		let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
 		println!("num_slots_bytes: {:?}", num_slots_bytes);
 		println!("num_slots: {:?}", num_slots);
 		Ok(())
 	}
 
-        pub async fn create_psgt(
+	pub async fn create_psgt(
 		&mut self,
-                data: TransactionData,
-        ) -> -> Result<PartiallySignedTransaction, LedgerAppError> {
-            // Create PSGT
-            let psgt = PartiallySignedTransaction {
-                global: Global {
-                    unsigned_tx: Transaction {
-                     
-                    },
-                    version: 0,
-                    unknown: BTreeMap::new(),
-                }, 
-                inputs: data.inputs,
-                outputs: data.outputs,
-                kernels: data.kernels,
-            };
-            psgt
-        }
-
+		data: TransactionData,
+	) -> Result<PartiallySignedTransaction, LedgerAppError> {
+		// Create PSGT
+		let psgt = PartiallySignedTransaction {
+			global: Global {
+				unsigned_tx: Transaction {},
+				version: 0,
+				unknown: BTreeMap::new(),
+			},
+			inputs: data.inputs,
+			outputs: data.outputs,
+			kernels: data.kernels,
+		};
+		Ok(psgt)
+	}
 
 	/* Round 1*/
 	///
-	pub async fn sign_sender(
+	pub async fn sign_sender<K: Keychain>(
 		&mut self,
-                data: TransactionData,
+		keychain: &K,
+		context: &Context,
+		data: TransactionData,
 		sender_input_params: SenderInputParams,
 	) -> Result<(), LedgerAppError> {
 		// Convert data to binary, before sending to Ledger device.
 
-                let psgt = self.create_psgt(data);
-                // serialize PSGT
-                serialize_hex(&psgt), base16str);
+		let psgt = self.create_psgt(data);
+		// serialize PSGT
+		serialize_hex(&psgt);
 
 		// Set slate as data.
 		//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
@@ -305,11 +309,13 @@ impl LedgerDevice {
 				}
 		*/
 
-                // Send
+		// Send
 
-                // deserialize PSGT
-                let deserialized = deserialize();
-                
+		// Get hex
+		let hex = "70736274ff010"; // TODO
+						   // deserialize PSGT
+		let deserialized = deserialize(hex);
+
 		Ok(())
 	}
 
@@ -329,16 +335,16 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
-                data: TransactionData,
+		data: TransactionData,
 	) -> Result<(), LedgerAppError> {
 		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
 
 		// Set data
 		let tx_info = Vec::new();
-                let psgt = self.create_psgt(data);
+		let psgt = self.create_psgt(data);
 
-                // serialize PSGT
-                serialize_hex(&psgt), base16str);
+		// serialize PSGT
+		serialize_hex(&psgt);
 
 		let cmd = APDUCommand {
 			cla: 0xE0,
@@ -359,8 +365,11 @@ impl LedgerDevice {
 
 		// Convert response data to information we need
 
-                // deserialize PSGT
-                let deserialized = deserialize();
+		// Get hex
+		let hex = "70736274ff010"; // TODO
+
+		// deserialize PSGT
+		let deserialized = deserialize(hex);
 
 		// Get payment proof signature from response data.
 		//let paymentProofSignature : DalekSignature =
@@ -371,37 +380,36 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-	pub async fn sign_finalize(
+	pub async fn sign_finalize<K: Keychain>(
 		&mut self,
 		keychain: &K,
 		context: &Context,
-                data: TransactionData,
+		data: TransactionData,
 	) -> Result<(), LedgerAppError> {
+		let psgt = self.create_psgt(data);
+		// serialize PSGT
+		serialize_hex(&psgt);
 
-            let psgt = self.create_psgt(data);
-            // serialize PSGT            
-            serialize_hex(&psgt), base16str);
+		// Get hex
+		let hex = "70736274ff010"; // TODO
 
-            // Convert response data to information we need
-            // deserialize PSGT
-            let deserialized = deserialize();
+		// Convert response data to information we need
+		// deserialize PSGT
+		let deserialized = deserialize(hex);
 
-            Ok(())
-        }
+		Ok(())
+	}
 
 	/// Returns payment nonce, proof signature,
-	pub async fn get_rangeproof(
-		&mut self
-	) -> Result<(), LedgerAppError> {
-
-            let tx_info = Vec::new();
-            let cmd = APDUCommand {
-		cla: 0xE0,
-		ins: INS_GET_RANGEPROOF,
-		p1: 0x00,
-		p2: 0x00,
-		data: tx_info,
-            };
+	pub async fn get_rangeproof(&mut self) -> Result<(), LedgerAppError> {
+		let tx_info = Vec::new();
+		let cmd = APDUCommand {
+			cla: 0xE0,
+			ins: INS_GET_RANGEPROOF,
+			p1: 0x00,
+			p2: 0x00,
+			data: tx_info,
+		};
 
 		/*
 				let response = apdu_transport.exchange(&cmd).await?;
@@ -411,17 +419,15 @@ impl LedgerDevice {
 					));
 				}
 		*/
-            //let psgt = self.create_psgt(&inputs, &outputs, &kernels);
-            // Send
+		//let psgt = self.create_psgt(&inputs, &outputs, &kernels);
+		// Send
 
-            //serialize_hex(&psgt), base16str);
+		//serialize_hex(&psgt), base16str);
 
+		//let deserialized = deserialize();
 
-            //let deserialized = deserialize();
-
-            Ok(())
-        }
-
+		Ok(())
+	}
 
 	/// Translate a retcode into an error message.
 	pub fn map_apdu_error_description(&mut self, retcode: u16) -> &'static str {
@@ -445,7 +451,7 @@ impl LedgerDevice {
 
 	/// Stream a long request in chunks
 	pub async fn send_chunks(
-	        &mut self, 
+		&mut self,
 		apdu_transport: &APDUTransport,
 		start_command: &APDUCommand,
 		message: &[u8],
@@ -459,21 +465,22 @@ impl LedgerDevice {
 			n if n > 255 => return Err(LedgerAppError::InvalidMessageSize),
 			_ => (),
 		}
-	
+
 		//
 		if start_command.p1 != ChunkPayloadType::Init as u8 {
 			return Err(LedgerAppError::InvalidChunkPayloadType);
 		}
-	
+
 		// If retcode isn't OK, map to error description.
 		let mut response = apdu_transport.exchange(start_command).await?;
 		if response.retcode != 0x9000 {
 			return Err(LedgerAppError::AppSpecific(
 				response.retcode,
-				self.map_apdu_error_description(response.retcode).to_string(),
+				self.map_apdu_error_description(response.retcode)
+					.to_string(),
 			));
 		}
-	
+
 		// Send message chunks
 		let last_chunk_index = chunks.len() - 1;
 		for (packet_idx, chunk) in chunks.enumerate() {
@@ -484,7 +491,7 @@ impl LedgerDevice {
 			if packet_idx == last_chunk_index {
 				p1 = ChunkPayloadType::Last as u8
 			}
-	
+
 			let command = APDUCommand {
 				cla: start_command.cla,
 				ins: start_command.ins,
@@ -492,24 +499,22 @@ impl LedgerDevice {
 				p2: 0,
 				data: chunk.to_vec(),
 			};
-	
+
 			// response is of type APDUAnswer
 			response = apdu_transport.exchange(&command).await?;
 			if response.retcode != 0x9000 {
 				return Err(LedgerAppError::AppSpecific(
 					response.retcode,
-					self.map_apdu_error_description(response.retcode).to_string(),
+					self.map_apdu_error_description(response.retcode)
+						.to_string(),
 				));
 			}
 		}
-	
+
 		// If we get to here, return the response.
 		Ok(response)
+	}
 }
-
-}
-
-
 
 /// Only used for testing purposes. Set specific key on device.
 fn put_keys() -> () {

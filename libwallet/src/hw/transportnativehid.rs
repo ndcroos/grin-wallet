@@ -33,7 +33,7 @@ use nix::ioctl_read;
 
 use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::*;
-use crate::hw::ledger_types::*;
+//use crate::hw::ledger_types::*;
 
 const LEDGER_VID: u16 = 0x2c97; // Vendor ID
 const LEDGER_USAGE_PAGE: u16 = 0xFFA0; //

@@ -16,6 +16,7 @@
 
 #[cfg_attr(rustfmt, rustfmt_skip)]
 macro_rules! impl_psgt_insert_pair {
+/*
     ($slf:ident.$unkeyed_name:ident <= <$raw_key:ident: _>|<$raw_value:ident: $unkeyed_value_type:ty>) => {
         if $raw_key.key.is_empty() {
             if $slf.$unkeyed_name.is_none() {
@@ -42,4 +43,5 @@ macro_rules! impl_psgt_insert_pair {
             return Err($crate::psgt::Error::InvalidKey($raw_key).into());
         }
     };
+*/
 }

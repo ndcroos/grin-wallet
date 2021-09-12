@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 //use std::sync::{Arc, Mutex, Weak};
-use futures::future;
+//use futures::future;
 
 /// Chunk payload type. An APDU message is broken up in packets.
 /// This enum is used to indicate whether a packet is the first one, an append packet,

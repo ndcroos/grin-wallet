@@ -509,6 +509,11 @@ pub fn serialize<T: Encodable + ?Sized>(data: &T) -> Vec<u8> {
 	encoder
 }
 
+/// Encode an object into a hex-encoded string
+pub fn serialize_hex<T: Encodable + ?Sized>(data: &T) -> String {
+	serialize(data)[..].to_hex()
+}
+
 /// Deserialize an object from a vector, will error if said deserialization
 /// doesn't consume the entire vector.
 pub fn deserialize<T: Decodable>(data: &[u8]) -> Result<T, Error> {

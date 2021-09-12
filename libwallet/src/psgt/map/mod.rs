@@ -32,10 +32,12 @@ pub trait Map {
 
 mod global;
 mod input;
+mod kernel;
 mod output;
 mod payment;
 
 pub use self::global::Global;
 pub use self::input::Input;
+pub use self::kernel::Kernel;
 pub use self::output::Output;
 pub use self::payment::Payment;

@@ -30,9 +30,10 @@ pub mod encode;
 pub mod endian;
 
 mod map;
-pub use self::map::{Global, Input, Map, Output};
+pub use self::map::{Global, Input, Kernel, Map, Output};
 
 use crate::grin_core::core::transaction::Transaction;
+use crate::grin_core::core::TxKernel;
 
 /// A Partially Signed Transaction.
 #[derive(Debug, Clone, PartialEq)]
@@ -46,6 +47,8 @@ pub struct PartiallySignedTransaction {
 	/// The corresponding key-value map for each output in the unsigned
 	/// transaction.
 	pub outputs: Vec<Output>,
+	///
+	pub kernels: Vec<Kernel>,
 }
 
 impl PartiallySignedTransaction {
@@ -55,6 +58,7 @@ impl PartiallySignedTransaction {
 		Ok(PartiallySignedTransaction {
 			inputs: vec![Default::default(); tx.body.inputs.len()],
 			outputs: vec![Default::default(); tx.body.outputs.len()],
+			kernels: vec![],
 			global: Global::from_unsigned_tx(tx)?,
 		})
 	}
@@ -102,12 +106,14 @@ mod tests {
 					version: 2,
 					input: vec![],
 					output: vec![],
+					kernels: vec![],
 				},
 				version: 0,
 				unknown: BTreeMap::new(),
 			},
 			inputs: vec![],
 			outputs: vec![],
+			kernels: vec![],
 		};
 		assert_eq!(
 			serialize_hex(&psgt),

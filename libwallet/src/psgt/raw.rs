@@ -14,7 +14,7 @@
 
 //! #
 
-use crate::psgt;
+//use crate::psgt;
 use crate::psgt::encode::{
 	self, deserialize, serialize, Decodable, Encodable, VarInt, MAX_VEC_SIZE,
 };
