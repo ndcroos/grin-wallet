@@ -169,22 +169,6 @@ macro_rules! impl_vec {
 impl_vec!(Vec<u8>);
 impl_vec!(u64);
 
-impl Decodable for Vec<u8> {
-	#[inline]
-	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
-		let len = VarInt::decode(&mut d)?.0 as usize;
-		if len > MAX_VEC_SIZE {
-			return Err(self::Error::OversizedVectorAllocation {
-				requested: len,
-				max: MAX_VEC_SIZE,
-			});
-		}
-		let mut ret = vec![0u8; len];
-		d.read_slice(&mut ret)?;
-		Ok(ret)
-	}
-}
-
 impl Encodable for Box<[u8]> {
 	#[inline]
 	fn encode<S: io::Write>(&self, s: S) -> Result<usize, io::Error> {
@@ -257,6 +241,90 @@ pub trait ReadExt {
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Debug)]
 pub struct VarInt(pub u64);
 
+impl Encodable for VarInt {
+	#[inline]
+	fn encode<S: io::Write>(&self, mut s: S) -> Result<usize, io::Error> {
+		match self.0 {
+			0..=0xFC => {
+				(self.0 as u8).encode(s)?;
+				Ok(1)
+			}
+			0xFD..=0xFFFF => {
+				s.emit_u8(0xFD)?;
+				(self.0 as u16).encode(s)?;
+				Ok(3)
+			}
+			0x10000..=0xFFFFFFFF => {
+				s.emit_u8(0xFE)?;
+				(self.0 as u32).encode(s)?;
+				Ok(5)
+			}
+			_ => {
+				s.emit_u8(0xFF)?;
+				(self.0 as u64).encode(s)?;
+				Ok(9)
+			}
+		}
+	}
+}
+
+impl Decodable for VarInt {
+	#[inline]
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+		let n = ReadExt::read_u8(&mut d)?;
+		match n {
+			0xFF => {
+				let x = ReadExt::read_u64(&mut d)?;
+				if x < 0x100000000 {
+					Err(self::Error::NonMinimalVarInt)
+				} else {
+					Ok(VarInt(x))
+				}
+			}
+			0xFE => {
+				let x = ReadExt::read_u32(&mut d)?;
+				if x < 0x10000 {
+					Err(self::Error::NonMinimalVarInt)
+				} else {
+					Ok(VarInt(x as u64))
+				}
+			}
+			0xFD => {
+				let x = ReadExt::read_u16(&mut d)?;
+				if x < 0xFD {
+					Err(self::Error::NonMinimalVarInt)
+				} else {
+					Ok(VarInt(x as u64))
+				}
+			}
+			n => Ok(VarInt(n as u64)),
+		}
+	}
+}
+
+impl Encodable for Vec<u8> {
+	#[inline]
+	fn encode<S: io::Write>(&self, s: S) -> Result<usize, io::Error> {
+		encode_with_size(self, s)
+	}
+}
+
+impl Decodable for Vec<u8> {
+	#[inline]
+	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
+		let len = VarInt::decode(&mut d)?.0 as usize;
+		if len > MAX_VEC_SIZE {
+			return Err(self::Error::OversizedVectorAllocation {
+				requested: len,
+				max: MAX_VEC_SIZE,
+			});
+		}
+		let mut ret = vec![0u8; len];
+		d.read_slice(&mut ret)?;
+		Ok(ret)
+	}
+}
+
 macro_rules! encoder_fn {
 	($name:ident, $val_type:ty, $writefn:ident) => {
 		#[inline]
@@ -324,40 +392,6 @@ impl ::std::error::Error for Error {
 			| Error::UnknownNetworkMagic(..)
 			| Error::ParseFailed(..)
 			| Error::UnsupportedSegwitFlag(..) => None,
-		}
-	}
-}
-
-impl Decodable for VarInt {
-	#[inline]
-	fn decode<D: io::Read>(mut d: D) -> Result<Self, Error> {
-		let n = ReadExt::read_u8(&mut d)?;
-		match n {
-			0xFF => {
-				let x = ReadExt::read_u64(&mut d)?;
-				if x < 0x100000000 {
-					Err(self::Error::NonMinimalVarInt)
-				} else {
-					Ok(VarInt(x))
-				}
-			}
-			0xFE => {
-				let x = ReadExt::read_u32(&mut d)?;
-				if x < 0x10000 {
-					Err(self::Error::NonMinimalVarInt)
-				} else {
-					Ok(VarInt(x as u64))
-				}
-			}
-			0xFD => {
-				let x = ReadExt::read_u16(&mut d)?;
-				if x < 0xFD {
-					Err(self::Error::NonMinimalVarInt)
-				} else {
-					Ok(VarInt(x as u64))
-				}
-			}
-			n => Ok(VarInt(n as u64)),
 		}
 	}
 }

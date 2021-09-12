@@ -31,7 +31,7 @@ const PSGT_COMMIT: u8 = 0x00;
 
 /// A key-value map for an input of the corresponding index in the unsigned
 /// transaction.
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Input {
 	/// The features of the output being spent.
 	pub features: OutputFeatures,

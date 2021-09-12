@@ -31,7 +31,7 @@ const PSGT_OUTPUT_FEATURES: u8 = 0x00;
 const PSGT_COMMITMENT: u8 = 0x00;
 const PSGT_RANGEPROOF: u8 = 0x00;
 
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Output {
 	/// The features of the output being spent.

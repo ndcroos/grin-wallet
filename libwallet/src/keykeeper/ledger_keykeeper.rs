@@ -14,9 +14,11 @@
 
 //! Keykeeper interface for Ledger hardware wallet.
 
-use crate::keykeeper_types::{KeyKeeper, SenderInputParams};
+use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
 use crate::hw::LedgerDevice;
+use crate::keykeeper_types::{KeyKeeper, SenderInputParams};
 use crate::slate::Slate;
+use crate::types::Context;
 use crate::{Error, ErrorKind};
 
 pub struct LedgerKeyKeeper {
@@ -24,21 +26,18 @@ pub struct LedgerKeyKeeper {
 }
 
 impl KeyKeeper for LedgerKeyKeeper {
-
 	fn get_num_slots(&mut self) -> Result<(), Error> {
-            let slotsCount = self.ledger.get_num_slots();
-            Ok(())
+		let slotsCount = self.ledger.get_num_slots();
+		Ok(())
 	}
 
-        fn get_rangeproof(&mut self) -> Result<(), Error> {
-            self.ledger.get_rangeproof();
-            Ok(())
-        }
-
+	fn get_rangeproof(&mut self) -> Result<(), Error> {
+		self.ledger.get_rangeproof();
+		Ok(())
+	}
 }
 
 impl LedgerKeyKeeper {
-
 	pub fn new() -> LedgerKeyKeeper {
 		LedgerKeyKeeper {
 			ledger: LedgerDevice::new(),
@@ -46,43 +45,61 @@ impl LedgerKeyKeeper {
 	}
 
 	// fee: from estimate_send_tx
-	pub fn sign_sender(&mut self, slate: &Slate, height: u64) -> Result<(), Error> {
-		// Get inputs and outputs
+	pub fn sign_sender<K: Keychain>(&mut self, slate: &Slate, height: u64) -> Result<(), Error> {
+		let keychain = w.keychain(keychain_mask)?;
 
+		// Get inputs and outputs
 		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
-                let tx_body = tx.body;
+		let tx_body = tx.body;
 		let inputs = tx_body.inputs;
 		let outputs = tx_body.outputs;
-                let kernels = tx_body.kernels;
+		let kernels = tx_body.kernels;
+
 		/*
 				let mut inputs_outputs : InputsOutputs = InputsOutputs {
 					inputs: match slate { tx.body.inputs?,
 					outputs: slate.tx.body.outputs?
 				};
 		*/
+
 		//let mut offset = slate.tx.offset?;
 		let fee = slate.fee_fields;
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
-                let sender_input_params = new SenderInputParams();
-		self.ledger.sign_sender(inputs, outputs, kernels, sender_input_params);
+		let sender_input_params = SenderInputParams();
+		self.ledger
+			.sign_sender(keychain, inputs, outputs, kernels, sender_input_params);
+
 		Ok(())
 	}
 
 	pub fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error> {
-                let tx = slate.tx.as_ref().expect("Error getting transaction body.");
-                let tx_body = tx.body;
+		let keychain = w.keychain(keychain_mask)?;
+
+		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
+		let tx_body = tx.body;
 		let inputs = tx_body.inputs;
 		let outputs = tx_body.outputs;
-                let kernels = tx_body.kernels;
-		self.ledger.sign_receiver(inputs, outputs, kernels);
+		let kernels = tx_body.kernels;
+		self.ledger
+			.sign_receiver(keychain, inputs, outputs, kernels);
+
 		Ok(())
 	}
 
 	pub fn sign_finalize(&mut self, slate: &Slate) -> Result<(), Error> {
-                //slate
-		self.ledger.sign_finalize();
+		let keychain = w.keychain(keychain_mask)?;
+
+		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
+		let tx_body = tx.body;
+		let inputs = tx_body.inputs;
+		let outputs = tx_body.outputs;
+		let kernels = tx_body.kernels;
+		//slate
+
+		self.ledger
+			.sign_finalize(keychain, inputs, outputs, kernels);
+
 		Ok(())
 	}
-
 }

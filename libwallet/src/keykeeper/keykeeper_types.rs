@@ -31,6 +31,7 @@ pub trait KeyKeeper {
 pub struct Slot {}
 
 /// Store inputs and outputs
+/*
 pub struct InputsOutputs {
 	/// Identifier, mmr_index (if known), amount
 	//input_ids: Vec<(Identifier, Option<u64>, u64)>,
@@ -38,10 +39,19 @@ pub struct InputsOutputs {
 	inputs: Vec<Input>,
 	outputs: Vec<Output>,
 }
+*/
+
+pub struct TransactionData {
+	inputs: Inputs,
+	outputs: Vec<Output>,
+	kernels: Vec<TxKernel>,
+	tko: BlindingFactor, // Transaction kernel offset
+	proof_sig: Option<PaymentInfo>,
+}
 
 // todo: put somewhere else
 pub struct SenderInputParams {
-	i_slot: i8,
+	//i_slot: i8,
 }
 
 pub struct SlateData {
@@ -50,12 +60,14 @@ pub struct SlateData {
 	pay_sig: Option<PaymentInfo>,
 }
 
+/*
 pub struct TxCommon {
 	// Kernel consists of rangeproofs for the outputs, transaction excess and kernel signature
 	// Usually a single kernel.
 	kernel: Vec<TxKernel>,
 	tko: BlindingFactor, // Transaction kernel offset
 }
+*/
 
 /*
 pub struct TxMutual {

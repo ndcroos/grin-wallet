@@ -220,7 +220,7 @@ impl LedgerDevice {
 		};
 		println!("cmd: {:?}", cmd);
 		let response = apdu_transport.exchange(&cmd).await?;
-		let description = map_apdu_error_description(response.retcode);
+		let description = self.map_apdu_error_description(response.retcode);
 		println!("description: {:?}", description);
 		println!("response: {:?}", response);
 
@@ -245,7 +245,7 @@ impl LedgerDevice {
 			data: Vec::new(),
 		};
 		let response = apdu_transport.exchange(&cmd).await?;
-		let description = map_apdu_error_description(response.retcode);
+		let description = self.map_apdu_error_description(response.retcode);
 		let num_slots_bytes = &response.data[0..4]; // TODO
                 let num_slots = str::from_utf8(num_slots_bytes).map_err(|_e| LedgerAppError::Utf8)?;
 		println!("num_slots_bytes: {:?}", num_slots_bytes);
@@ -253,14 +253,40 @@ impl LedgerDevice {
 		Ok(())
 	}
 
+        pub async fn create_psgt(
+		&mut self,
+                data: TransactionData,
+        ) -> -> Result<PartiallySignedTransaction, LedgerAppError> {
+            // Create PSGT
+            let psgt = PartiallySignedTransaction {
+                global: Global {
+                    unsigned_tx: Transaction {
+                     
+                    },
+                    version: 0,
+                    unknown: BTreeMap::new(),
+                }, 
+                inputs: data.inputs,
+                outputs: data.outputs,
+                kernels: data.kernels,
+            };
+            psgt
+        }
+
+
 	/* Round 1*/
 	///
 	pub async fn sign_sender(
 		&mut self,
-		inputs_outputs: InputsOutputs,
+                data: TransactionData,
 		sender_input_params: SenderInputParams,
 	) -> Result<(), LedgerAppError> {
 		// Convert data to binary, before sending to Ledger device.
+
+                let psgt = self.create_psgt(data);
+                // serialize PSGT
+                serialize_hex(&psgt), base16str);
+
 		// Set slate as data.
 		//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
 		//let cmd = LedgerDevice::set_command_header(self, INS_SEND, 0x00, 0x00, xs);
@@ -279,6 +305,11 @@ impl LedgerDevice {
 				}
 		*/
 
+                // Send
+
+                // deserialize PSGT
+                let deserialized = deserialize();
+                
 		Ok(())
 	}
 
@@ -298,15 +329,16 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
-		//inputs_outputs: InputsOutputs,
-                inputs: Inputs,
-                outputs: Vec<Output>,
-                kernels: Vec<TxKernel>,
+                data: TransactionData,
 	) -> Result<(), LedgerAppError> {
 		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
 
 		// Set data
 		let tx_info = Vec::new();
+                let psgt = self.create_psgt(data);
+
+                // serialize PSGT
+                serialize_hex(&psgt), base16str);
 
 		let cmd = APDUCommand {
 			cla: 0xE0,
@@ -327,6 +359,9 @@ impl LedgerDevice {
 
 		// Convert response data to information we need
 
+                // deserialize PSGT
+                let deserialized = deserialize();
+
 		// Get payment proof signature from response data.
 		//let paymentProofSignature : DalekSignature =
 
@@ -336,21 +371,20 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-/*
-	pub async fn sign_finalize<K: Keychain>(
+	pub async fn sign_finalize(
 		&mut self,
 		keychain: &K,
 		context: &Context,
-		inputs_outputs: InputsOutputs,
+                data: TransactionData,
 	) -> Result<(), LedgerAppError> {
 
+            let psgt = self.create_psgt(data);
+            // serialize PSGT            
+            serialize_hex(&psgt), base16str);
 
-        }
-*/
-
-	pub async fn sign_finalize(
-		&mut self,
-	) -> Result<(), LedgerAppError> {
+            // Convert response data to information we need
+            // deserialize PSGT
+            let deserialized = deserialize();
 
             Ok(())
         }
@@ -377,93 +411,100 @@ impl LedgerDevice {
 					));
 				}
 		*/
+            //let psgt = self.create_psgt(&inputs, &outputs, &kernels);
+            // Send
+
+            //serialize_hex(&psgt), base16str);
+
+
+            //let deserialized = deserialize();
 
             Ok(())
         }
 
 
-/// Translate a retcode into an error message.
-pub fn map_apdu_error_description(retcode: u16) -> &'static str {
-	match retcode {
-		0x6400 => "APDU_CODE_EXECUTION_ERROR - No information given (NV-Ram not changed)",
-		0x6700 => "APDU_CODE_WRONG_LENGTH - Wrong length",
-		0x6982 => "APDU_CODE_EMPTY_BUFFER",
-		0x6983 => "APDU_CODE_OUTPUT_BUFFER_TOO_SMALL - ",
-		0x6984 => "APDU_CODE_DATA_INVALID - data reversibly blocked (invalidated)",
-		0x6985 => "APDU_CODE_CONDITIONS_NOT_SATISFIED - Conditions of use not satisfied",
-		0x6986 => "APDU_CODE_COMMAND_NOT_ALLOWED - Command not allowed (no current EF)",
-		0x6A80 => "APDU_CODE_BAD_KEY_HANDLE - The parameters in the data field are incorrect",
-		0x6B00 => "APDU_CODE_INVALIDP1P2 - Wrong parameter(s) P1-P2",
-		0x6D00 => "APDU_CODE_INS_NOT_SUPPORTED - Instruction code not supported or invalid",
-		0x6E00 => "APDU_CODE_CLA_NOT_SUPPORTED - Class not supported",
-		0x6F00 => "APDU_CODE_UNKNOWN - ",
-		0x6F01 => "APDU_CODE_SIGN_VERIFY_ERROR - ",
-		_ => "[APDU_ERROR] Unknown",
-	}
-}
-
-/// Stream a long request in chunks
-pub async fn send_chunks(
-        mut &self, 
-	apdu_transport: &APDUTransport,
-	start_command: &APDUCommand,
-	message: &[u8],
-) -> Result<APDUAnswer, LedgerAppError> {
-	// Returns an iterator over a slice in chunks, with the given size.
-	let chunks = message.chunks(USER_MESSAGE_CHUNK_SIZE);
-	// If length is 0, empty message
-	// If length is > 255, invalid message
-	match chunks.len() {
-		0 => return Err(LedgerAppError::InvalidEmptyMessage),
-		n if n > 255 => return Err(LedgerAppError::InvalidMessageSize),
-		_ => (),
-	}
-
-	//
-	if start_command.p1 != ChunkPayloadType::Init as u8 {
-		return Err(LedgerAppError::InvalidChunkPayloadType);
-	}
-
-	// If retcode isn't OK, map to error description.
-	let mut response = apdu_transport.exchange(start_command).await?;
-	if response.retcode != 0x9000 {
-		return Err(LedgerAppError::AppSpecific(
-			response.retcode,
-			map_apdu_error_description(response.retcode).to_string(),
-		));
-	}
-
-	// Send message chunks
-	let last_chunk_index = chunks.len() - 1;
-	for (packet_idx, chunk) in chunks.enumerate() {
-		//
-		let mut p1 = ChunkPayloadType::Add as u8;
-		// If the packet ID is equal to the last_chunck_index,
-		// change p1 type as to be the last one
-		if packet_idx == last_chunk_index {
-			p1 = ChunkPayloadType::Last as u8
+	/// Translate a retcode into an error message.
+	pub fn map_apdu_error_description(&mut self, retcode: u16) -> &'static str {
+		match retcode {
+			0x6400 => "APDU_CODE_EXECUTION_ERROR - No information given (NV-Ram not changed)",
+			0x6700 => "APDU_CODE_WRONG_LENGTH - Wrong length",
+			0x6982 => "APDU_CODE_EMPTY_BUFFER",
+			0x6983 => "APDU_CODE_OUTPUT_BUFFER_TOO_SMALL - ",
+			0x6984 => "APDU_CODE_DATA_INVALID - data reversibly blocked (invalidated)",
+			0x6985 => "APDU_CODE_CONDITIONS_NOT_SATISFIED - Conditions of use not satisfied",
+			0x6986 => "APDU_CODE_COMMAND_NOT_ALLOWED - Command not allowed (no current EF)",
+			0x6A80 => "APDU_CODE_BAD_KEY_HANDLE - The parameters in the data field are incorrect",
+			0x6B00 => "APDU_CODE_INVALIDP1P2 - Wrong parameter(s) P1-P2",
+			0x6D00 => "APDU_CODE_INS_NOT_SUPPORTED - Instruction code not supported or invalid",
+			0x6E00 => "APDU_CODE_CLA_NOT_SUPPORTED - Class not supported",
+			0x6F00 => "APDU_CODE_UNKNOWN - ",
+			0x6F01 => "APDU_CODE_SIGN_VERIFY_ERROR - ",
+			_ => "[APDU_ERROR] Unknown",
 		}
+	}
 
-		let command = APDUCommand {
-			cla: start_command.cla,
-			ins: start_command.ins,
-			p1,
-			p2: 0,
-			data: chunk.to_vec(),
-		};
-
-		// response is of type APDUAnswer
-		response = apdu_transport.exchange(&command).await?;
+	/// Stream a long request in chunks
+	pub async fn send_chunks(
+	        &mut self, 
+		apdu_transport: &APDUTransport,
+		start_command: &APDUCommand,
+		message: &[u8],
+	) -> Result<APDUAnswer, LedgerAppError> {
+		// Returns an iterator over a slice in chunks, with the given size.
+		let chunks = message.chunks(USER_MESSAGE_CHUNK_SIZE);
+		// If length is 0, empty message
+		// If length is > 255, invalid message
+		match chunks.len() {
+			0 => return Err(LedgerAppError::InvalidEmptyMessage),
+			n if n > 255 => return Err(LedgerAppError::InvalidMessageSize),
+			_ => (),
+		}
+	
+		//
+		if start_command.p1 != ChunkPayloadType::Init as u8 {
+			return Err(LedgerAppError::InvalidChunkPayloadType);
+		}
+	
+		// If retcode isn't OK, map to error description.
+		let mut response = apdu_transport.exchange(start_command).await?;
 		if response.retcode != 0x9000 {
 			return Err(LedgerAppError::AppSpecific(
 				response.retcode,
 				self.map_apdu_error_description(response.retcode).to_string(),
 			));
 		}
-	}
-
-	// If we get to here, return the response.
-	Ok(response)
+	
+		// Send message chunks
+		let last_chunk_index = chunks.len() - 1;
+		for (packet_idx, chunk) in chunks.enumerate() {
+			//
+			let mut p1 = ChunkPayloadType::Add as u8;
+			// If the packet ID is equal to the last_chunck_index,
+			// change p1 type as to be the last one
+			if packet_idx == last_chunk_index {
+				p1 = ChunkPayloadType::Last as u8
+			}
+	
+			let command = APDUCommand {
+				cla: start_command.cla,
+				ins: start_command.ins,
+				p1,
+				p2: 0,
+				data: chunk.to_vec(),
+			};
+	
+			// response is of type APDUAnswer
+			response = apdu_transport.exchange(&command).await?;
+			if response.retcode != 0x9000 {
+				return Err(LedgerAppError::AppSpecific(
+					response.retcode,
+					self.map_apdu_error_description(response.retcode).to_string(),
+				));
+			}
+		}
+	
+		// If we get to here, return the response.
+		Ok(response)
 }
 
 }

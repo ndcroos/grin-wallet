@@ -19,6 +19,7 @@ use std::io::{self, Cursor, Read};
 
 use core::cmp;
 
+use crate::grin_core::core::Transaction;
 use crate::psgt;
 use crate::psgt::encode;
 use crate::psgt::encode::Decodable;
@@ -44,15 +45,17 @@ pub struct Global {
 		serde(with = "::serde_utils::btreemap_as_seq_byte_values")
 	)]
 	pub unknown: BTreeMap<raw::Key, Vec<u8>>,
+	pub unsigned_tx: Transaction,
 }
 
 impl Global {
 	/// Create a Global from an unsigned transaction, error if not unsigned
-	fn from_unsigned_tx(tx: Transaction) -> Result<Self, psgt::Error> {
-		for txin in &tx.input {}
+	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, psgt::Error> {
+		for txin in &tx.body.inputs {}
 
 		Ok(Global {
 			unsigned_tx: tx,
+			version: 0,
 			unknown: Default::default(),
 		})
 	}
