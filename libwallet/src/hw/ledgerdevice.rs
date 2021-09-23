@@ -39,7 +39,6 @@ use crate::grin_keychain::Identifier;
 use crate::keykeeper::SenderInputParams;
 use crate::keykeeper_types::TransactionData;
 use crate::psgt::encode::{deserialize, serialize, serialize_hex};
-use crate::psgt::*;
 use crate::slate::{PaymentInfo, Slate};
 
 // Different instructions

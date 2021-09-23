@@ -61,7 +61,6 @@ mod types;
 
 mod hw;
 mod keykeeper;
-mod psgt;
 
 cfg_if! {
 if #[cfg(target_os = "linux")] {
