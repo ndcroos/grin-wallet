@@ -42,6 +42,7 @@ use std::convert::{TryFrom, TryInto};
 use std::sync::mpsc::Sender;
 use std::sync::Arc;
 
+use crate::keykeeper::keykeeper_types::HwSerializeFormat;
 use crate::keykeeper::LedgerKeyKeeper;
 
 /// List of accounts
@@ -531,8 +532,16 @@ where
 			args.hardware,
 		)?
 	};
+
 	let mut keykeeper = LedgerKeyKeeper::new();
-	keykeeper.sign_sender(&slate, height);
+	keykeeper.sign_sender(
+		&mut *w,
+		&context,
+		HwSerializeFormat::APDU,
+		keychain_mask,
+		&slate,
+		height,
+	);
 
 	// Payment Proof, add addresses to slate and save address
 	// TODO: Note we only use single derivation path for now,
@@ -792,6 +801,10 @@ where
 	let mut context = w.get_private_context(keychain_mask, sl.id.as_bytes())?;
 	let keychain = w.keychain(keychain_mask)?;
 	let parent_key_id = w.parent_key_id();
+	/*
+		let mut keykeeper = LedgerKeyKeeper::new();
+		keykeeper.sign_finalize(keychain_mask, &slate, height);
+	*/
 
 	if let Some(args) = context.late_lock_args.take() {
 		// Transaction was late locked, select inputs+change now
@@ -832,12 +845,22 @@ where
 	}
 
 	// Add our contribution to the offset
+	/*
+		// TODO
+		sl.offset = psgt.global.offset;
+	*/
 	sl.adjust_offset(&keychain, &context)?;
 
 	selection::repopulate_tx(&mut *w, keychain_mask, &mut sl, &context, true)?;
 
 	// TODO: think of combining these for HW in a separate method?
 	tx::complete_tx(&mut *w, keychain_mask, &mut sl, &context, hardware)?;
+
+	/*
+		// HW pseudo code
+
+	*/
+
 	tx::verify_slate_payment_proof(
 		&mut *w,
 		keychain_mask,

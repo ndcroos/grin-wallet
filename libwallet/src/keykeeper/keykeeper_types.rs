@@ -22,10 +22,61 @@ use crate::{Error, ErrorKind};
 
 pub trait KeyKeeper {
 	// Send instruction for getting the number of slots
-	fn get_num_slots(&mut self) -> Result<(), Error>;
+	//fn get_num_slots(&mut self) -> Result<(), Error>;
 
 	//
-	fn get_rangeproof(&mut self) -> Result<(), Error>;
+	//fn get_rangeproof(&mut self) -> Result<(), Error>;
+
+	/*
+	/// Initiate tx as sender
+	fn init_send_tx<'a, T: ?Sized, C, K>(
+		w: &mut T,
+		keychain_mask: Option<&SecretKey>,
+		args: InitTxArgs,
+		use_test_rng: bool,
+	) -> Result<Slate, Error>
+	where
+		T: WalletBackend<'a, C, K>,
+		C: NodeClient + 'a,
+		K: Keychain + 'a,
+
+
+		// Receive a tx as recipient
+	fn receive_tx<'a, T: ?Sized, C, K>(
+		w: &mut T,
+		keychain_mask: Option<&SecretKey>,
+		slate: &Slate,
+		dest_acct_name: Option<&str>,
+		use_test_rng: bool,
+		hardware: bool,
+	) -> Result<Slate, Error>
+	where
+		T: WalletBackend<'a, C, K>,
+		C: NodeClient + 'a,
+		K: Keychain + 'a
+
+
+		fn finalize_tx<'a, T: ?Sized, C, K>(
+		w: &mut T,
+		keychain_mask: Option<&SecretKey>,
+		slate: &Slate,
+		post_automatically: bool,
+		hardware: bool,
+	) -> Result<Slate, Error>
+	where
+		T: WalletBackend<'a, C, K>,
+		C: NodeClient + 'a,
+		K: Keychain + 'a,
+
+	*/
+}
+
+/// Different methods of serializing the packets needed for the hardware wallets.
+pub enum HwSerializeFormat {
+	/// Raw APDU packets, used in Ledger hardware wallet.
+	APDU,
+	/// Device independent format.
+	PSGT,
 }
 
 pub struct Slot {}

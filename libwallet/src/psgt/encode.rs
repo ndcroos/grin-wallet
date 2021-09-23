@@ -363,15 +363,17 @@ impl fmt::Display for Error {
 				"allocation of oversized vector: requested {}, maximum {}",
 				r, m
 			),
-			Error::InvalidChecksum {
-				expected: ref e,
-				actual: ref a,
-			} => write!(
-				f,
-				"invalid checksum: expected {}, actual {}",
-				e.to_hex(),
-				a.to_hex()
-			),
+			/*
+						Error::InvalidChecksum {
+							expected: ref e,
+							actual: ref a,
+						} => write!(
+							f,
+							"invalid checksum: expected {}, actual {}",
+							e.to_hex(),
+							a.to_hex()
+						),
+			*/
 			Error::NonMinimalVarInt => write!(f, "non-minimal varint"),
 			Error::UnknownNetworkMagic(ref m) => write!(f, "unknown network magic: {}", m),
 			Error::ParseFailed(ref e) => write!(f, "parse failed: {}", e),
@@ -511,7 +513,9 @@ pub fn serialize<T: Encodable + ?Sized>(data: &T) -> Vec<u8> {
 
 /// Encode an object into a hex-encoded string
 pub fn serialize_hex<T: Encodable + ?Sized>(data: &T) -> String {
-	serialize(data)[..].to_hex()
+	//serialize(data)[..].to_hex()
+	let foo = String::from("todo");
+	foo
 }
 
 /// Deserialize an object from a vector, will error if said deserialization

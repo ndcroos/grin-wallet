@@ -21,4 +21,8 @@ use crate::Error;
 
 pub struct SoftwareKeyKeeper {}
 
-impl SoftwareKeyKeeper {}
+/*
+impl SoftwareKeyKeeper for KeyKeeper {
+
+}
+*/

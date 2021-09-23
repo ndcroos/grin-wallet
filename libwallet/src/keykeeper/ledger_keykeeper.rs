@@ -15,8 +15,9 @@
 //! Keykeeper interface for Ledger hardware wallet.
 
 use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
+use crate::grin_util::secp::key::SecretKey;
 use crate::hw::LedgerDevice;
-use crate::keykeeper_types::{KeyKeeper, SenderInputParams, TransactionData};
+use crate::keykeeper_types::*;
 use crate::slate::Slate;
 use crate::types::Context;
 use crate::Error;
@@ -26,15 +27,17 @@ pub struct LedgerKeyKeeper {
 }
 
 impl KeyKeeper for LedgerKeyKeeper {
-	fn get_num_slots(&mut self) -> Result<(), Error> {
-		let slotsCount = self.ledger.get_num_slots();
-		Ok(())
-	}
+	/*
+		fn get_num_slots(&mut self) -> Result<(), Error> {
+			let slotsCount = self.ledger.get_num_slots();
+			Ok(())
+		}
 
-	fn get_rangeproof(&mut self) -> Result<(), Error> {
-		self.ledger.get_rangeproof();
-		Ok(())
-	}
+		fn get_rangeproof(&mut self) -> Result<(), Error> {
+			self.ledger.get_rangeproof();
+			Ok(())
+		}
+	*/
 }
 
 impl LedgerKeyKeeper {
@@ -47,7 +50,10 @@ impl LedgerKeyKeeper {
 	// fee: from estimate_send_tx
 	pub fn sign_sender<K: Keychain>(
 		&mut self,
-		keychain: &K,
+
+		context: &Context,
+		hw_ser_format: HwSerializeFormat,
+		keychain_mask: Option<&SecretKey>,
 		slate: &Slate,
 		height: u64,
 	) -> Result<(), Error> {
@@ -79,12 +85,19 @@ impl LedgerKeyKeeper {
 		//let height = ;
 		let payment_proof = &slate.payment_proof;
 		let sender_input_params = SenderInputParams {};
-		self.ledger.sign_sender(keychain, data, sender_input_params);
+		self.ledger
+			.sign_sender(keychain, context, hw_ser_format, data, sender_input_params);
 
 		Ok(())
 	}
 
-	pub fn sign_receiver(&mut self, slate: &Slate) -> Result<(), Error> {
+	pub fn sign_receiver(
+		&mut self,
+		context: &Context,
+		hw_ser_format: HwSerializeFormat,
+		keychain_mask: Option<&SecretKey>,
+		slate: &Slate,
+	) -> Result<(), Error> {
 		let keychain = w.keychain(keychain_mask)?;
 
 		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
@@ -99,12 +112,19 @@ impl LedgerKeyKeeper {
 			tko: None,
 			proof_sig: None,
 		};
-		self.ledger.sign_receiver(keychain, data);
+
+		self.ledger
+			.sign_receiver(keychain, context, hw_ser_format, data);
 
 		Ok(())
 	}
 
-	pub fn sign_finalize(&mut self, slate: &Slate) -> Result<(), Error> {
+	pub fn sign_finalize(
+		&mut self,
+		context: &Context,
+		hw_ser_format: HwSerializeFormat,
+		slate: &Slate,
+	) -> Result<(), Error> {
 		let keychain = w.keychain(keychain_mask)?;
 
 		let tx = slate.tx.as_ref().expect("Error getting transaction body.");
@@ -120,7 +140,8 @@ impl LedgerKeyKeeper {
 			tko: None,
 			proof_sig: None,
 		};
-		self.ledger.sign_finalize(keychain, data);
+		self.ledger
+			.sign_finalize(keychain, context, hw_ser_format, data);
 
 		Ok(())
 	}

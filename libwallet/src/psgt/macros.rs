@@ -13,35 +13,37 @@
 // limitations under the License.
 
 //! Code adapted from https://github.com/rust-bitcoin/rust-bitcoin/blob/master/src/util/psbt/macros.rs
-
+/*
 #[cfg_attr(rustfmt, rustfmt_skip)]
 macro_rules! impl_psgt_insert_pair {
-/*
-    ($slf:ident.$unkeyed_name:ident <= <$raw_key:ident: _>|<$raw_value:ident: $unkeyed_value_type:ty>) => {
-        if $raw_key.key.is_empty() {
-            if $slf.$unkeyed_name.is_none() {
-                let val: $unkeyed_value_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_value)?;
-                $slf.$unkeyed_name = Some(val)
-            } else {
-                return Err($crate::psgt::Error::DuplicateKey($raw_key).into());
-            }
-        } else {
-            return Err($crate::psgt::Error::InvalidKey($raw_key).into());
-        }
-    };
-    ($slf:ident.$keyed_name:ident <= <$raw_key:ident: $keyed_key_type:ty>|<$raw_value:ident: $keyed_value_type:ty>) => {
-        if !$raw_key.key.is_empty() {
-            let key_val: $keyed_key_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_key.key)?;
-            match $slf.$keyed_name.entry(key_val) {
-                $crate::prelude::btree_map::Entry::Vacant(empty_key) => {
-                    let val: $keyed_value_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_value)?;
-                    empty_key.insert(val);
-                }
-                $crate::prelude::btree_map::Entry::Occupied(_) => return Err($crate::psgt::Error::DuplicateKey($raw_key).into()),
-            }
-        } else {
-            return Err($crate::psgt::Error::InvalidKey($raw_key).into());
-        }
-    };
-*/
+
+	($slf:ident.$unkeyed_name:ident <= <$raw_key:ident: _>|<$raw_value:ident: $unkeyed_value_type:ty>) => {
+		if $raw_key.key.is_empty() {
+			if $slf.$unkeyed_name.is_none() {
+				let val: $unkeyed_value_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_value)?;
+				$slf.$unkeyed_name = Some(val)
+			} else {
+				return Err($crate::psgt::Error::DuplicateKey($raw_key).into());
+			}
+		} else {
+			return Err($crate::psgt::Error::InvalidKey($raw_key).into());
+		}
+	};
+
+	($slf:ident.$keyed_name:ident <= <$raw_key:ident: $keyed_key_type:ty>|<$raw_value:ident: $keyed_value_type:ty>) => {
+		if !$raw_key.key.is_empty() {
+			let key_val: $keyed_key_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_key.key)?;
+			match $slf.$keyed_name.entry(key_val) {
+				$crate::prelude::btree_map::Entry::Vacant(empty_key) => {
+					let val: $keyed_value_type = $crate::psgt::serialize::Deserialize::deserialize(&$raw_value)?;
+					empty_key.insert(val);
+				}
+				$crate::prelude::btree_map::Entry::Occupied(_) => return Err($crate::psgt::Error::DuplicateKey($raw_key).into()),
+			}
+		} else {
+			return Err($crate::psgt::Error::InvalidKey($raw_key).into());
+		}
+	};
+
 }
+*/

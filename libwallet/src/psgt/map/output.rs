@@ -34,6 +34,7 @@ const PSGT_RANGEPROOF: u8 = 0x00;
 #[derive(Clone, Default, Debug, PartialEq, Serialize, Deserialize)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Output {
+	/*
 	/// The features of the output being spent.
 	pub features: OutputFeatures,
 	/// The commit referencing the output being spent.
@@ -49,48 +50,49 @@ pub struct Output {
 		serde(with = "::serde_utils::btreemap_as_seq_byte_values")
 	)]
 	pub unknown: BTreeMap<raw::Key, Vec<u8>>,
-}
+*/}
 
 impl Map for Output {
 	fn insert_pair(&mut self, pair: raw::Pair) -> Result<(), encode::Error> {
-		let raw::Pair {
-			key: raw_key,
-			value: raw_value,
-		} = pair;
+		/*
+				let raw::Pair {
+					key: raw_key,
+					value: raw_value,
+				} = pair;
 
-		match raw_key.type_value {
-			PSGT_OUTPUT_FEATURES => {
-				impl_psgt_insert_pair! {
-					self.features <= <raw_key: _>|<raw_value: OutputFeatures>
+				match raw_key.type_value {
+					PSGT_OUTPUT_FEATURES => {
+						impl_psgt_insert_pair! {
+							self.features <= <raw_key: _>|<raw_value: OutputFeatures>
+						}
+					}
+					PSGT_COMMITMENT => {
+						impl_psgt_insert_pair! {
+							self.commit <= <raw_key: _>|<raw_value: pedersen::Commitment>
+						}
+					}
+					PSGT_RANGEPROOF => {
+						impl_psgt_insert_pair! {
+							self.rangeproof <= <raw_key: _>|<raw_value: pedersen::RangeProof>
+						}
+					}
 				}
-			}
-			PSGT_COMMITMENT => {
-				impl_psgt_insert_pair! {
-					self.commit <= <raw_key: _>|<raw_value: pedersen::Commitment>
-				}
-			}
-			PSGT_RANGEPROOF => {
-				impl_psgt_insert_pair! {
-					self.rangeproof <= <raw_key: _>|<raw_value: pedersen::RangeProof>
-				}
-			}
-		}
-
+		*/
 		Ok(())
 	}
 
 	fn get_pairs(&self) -> Result<Vec<raw::Pair>, io::Error> {
 		let mut rv: Vec<raw::Pair> = Default::default();
+		/*
+				// TODO
 
-		// TODO
-
-		for (key, value) in self.unknown.iter() {
-			rv.push(raw::Pair {
-				key: key.clone(),
-				value: value.clone(),
-			});
-		}
-
+				for (key, value) in self.unknown.iter() {
+					rv.push(raw::Pair {
+						key: key.clone(),
+						value: value.clone(),
+					});
+				}
+		*/
 		Ok(rv)
 	}
 

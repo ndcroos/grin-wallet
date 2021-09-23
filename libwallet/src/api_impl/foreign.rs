@@ -107,6 +107,7 @@ where
 	//let mut ledger = LedgerDevice::new();
 	let mut keykeeper = LedgerKeyKeeper::new();
 
+	// Calculating the receiver's signature happens here.
 	let context = tx::add_output_to_slate(
 		&mut *w,
 		keychain_mask,
@@ -117,7 +118,31 @@ where
 		use_test_rng,
 	)?;
 
+	/*
+		// Pseudocode for calculating signature
+		let pub_excess = psgt.;
+		let pub_nonce = psgt.;
+		let sig_part = psgt.;
+		for i in 0..ret_slate.num_participants() as usize {
+			// find my entry
+			if ret_slate.participant_data[i].public_blind_excess == pub_excess
+				&& self.participant_data[i].public_nonce == pub_nonce
+			{
+				self.participant_data[i].part_sig = Some(sig_part);
+				break;
+			}
+		}
+
+	*/
+
 	// Add our contribution to the offset
+
+	/*
+		// Pseudocode TODO
+		// HW needs to adjust offset based on inputs, outputs and excess.
+			ret_slate.offset = psgt.global.offset;
+	*/
+
 	if hardware {
 		keykeeper.sign_receiver(slate);
 	//ledger.sign_receiver(&keychain, &context);
@@ -135,6 +160,18 @@ where
 
 			};
 	*/
+
+	// If hardware wallet, needs to sign payment proof.
+
+	/*
+		if let Some(ref mut p) = ret_slate.payment_proof {
+			// Get sig from response of HW
+			let sig = psgt.payment_proof;
+			p.receiver_signature = Some(sig);
+		}
+
+	*/
+
 	if let Some(ref mut p) = ret_slate.payment_proof {
 		let sig = tx::create_payment_proof_signature(
 			ret_slate.amount,

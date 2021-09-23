@@ -37,7 +37,7 @@ use ed25519_dalek::Signature as DalekSignature;
 
 use crate::grin_keychain::Identifier;
 use crate::keykeeper::SenderInputParams;
-use crate::keykeeper_types::TransactionData;
+use crate::keykeeper_types::*;
 use crate::psgt::encode::{deserialize, serialize, serialize_hex};
 use crate::psgt::*;
 use crate::slate::{PaymentInfo, Slate};
@@ -258,23 +258,28 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-	pub async fn create_psgt(
-		&mut self,
-		data: TransactionData,
-	) -> Result<PartiallySignedTransaction, LedgerAppError> {
-		// Create PSGT
-		let psgt = PartiallySignedTransaction {
-			global: Global {
-				unsigned_tx: Transaction {},
-				version: 0,
-				unknown: BTreeMap::new(),
-			},
-			inputs: data.inputs,
-			outputs: data.outputs,
-			kernels: data.kernels,
-		};
-		Ok(psgt)
-	}
+	/*
+		async fn create_psgt(
+			&mut self,
+			data: TransactionData,
+		) -> Result<PartiallySignedTransaction, LedgerAppError> {
+			// Create PSGT
+			let psgt = PartiallySignedTransaction {
+				global: Global {
+					unsigned_tx: Transaction {
+						body: ,
+						offset: ,
+					},
+					version: 0,
+					unknown: BTreeMap::new(),
+				},
+				inputs: vec![], // TODO
+				outputs: vec![],
+				kernels: vec![],
+			};
+			Ok(psgt)
+		}
+	*/
 
 	/* Round 1*/
 	///
@@ -282,40 +287,45 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
+		hw_ser_format: HwSerializeFormat,
 		data: TransactionData,
 		sender_input_params: SenderInputParams,
 	) -> Result<(), LedgerAppError> {
 		// Convert data to binary, before sending to Ledger device.
 
-		let psgt = self.create_psgt(data);
-		// serialize PSGT
-		serialize_hex(&psgt);
+		match hw_ser_format {
+			HwSerializeFormat::APDU => {
+				// Set slate as data.
+				//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
+				//let cmd = LedgerDevice::set_command_header(self, INS_SEND, 0x00, 0x00, xs);
 
-		// Set slate as data.
-		//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
-		//let cmd = LedgerDevice::set_command_header(self, INS_SEND, 0x00, 0x00, xs);
-
-		// Return pub_nonce and commitment, generated from secret nonce on device.
-		//let pub_once =
-		//let commitment =
-
-		// TODO
-		/*
+				// TODO
+				/*
 				let response = apdu_transport.exchange(&cmd).await?;
 				if response.retcode != APDUErrorCodes::NoError as u16 {
 					return Err(LedgerAppError::TransportError(
 						TransportError::APDUExchangeError,
 					));
 				}
-		*/
+				*/
+			}
+			HwSerializeFormat::PSGT => {
+				//let psgt = self.create_psgt(data);
+				// serialize PSGT
+				//serialize_hex(&psgt);
 
-		// Send
+				// Send
 
-		// Get hex
-		let hex = "70736274ff010"; // TODO
-						   // deserialize PSGT
-		let deserialized = deserialize(hex);
+				// Get hex
+				//let hex = "70736274ff010"; // TODO
+				// deserialize PSGT
+				//let deserialized = deserialize(hex);
+			}
+		}
 
+		// Return pub_nonce and commitment, generated from secret nonce on device.
+		//let pub_once =
+		//let commitment =
 		Ok(())
 	}
 
@@ -335,41 +345,46 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
+		hw_ser_format: HwSerializeFormat,
 		data: TransactionData,
 	) -> Result<(), LedgerAppError> {
-		//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
+		match hw_ser_format {
+			HwSerializeFormat::APDU => {
+				// Set data
+				let tx_info = Vec::new();
+				let cmd = APDUCommand {
+					cla: 0xE0,
+					ins: INS_RECEIVE,
+					p1: 0x00,
+					p2: 0x00,
+					data: tx_info,
+				};
 
-		// Set data
-		let tx_info = Vec::new();
-		let psgt = self.create_psgt(data);
+				//let cmd = LedgerDevice::set_command_header_noopt(self, INS_RECEIVE, 0x00, 0x00);
 
-		// serialize PSGT
-		serialize_hex(&psgt);
-
-		let cmd = APDUCommand {
-			cla: 0xE0,
-			ins: INS_RECEIVE,
-			p1: 0x00,
-			p2: 0x00,
-			data: tx_info,
-		};
-
-		/*
+				/*
 				let response = apdu_transport.exchange(&cmd).await?;
 				if response.retcode != APDUErrorCodes::NoError as u16 {
 					return Err(LedgerAppError::TransportError(
 						TransportError::APDUExchangeError,
-					));
-				}
-		*/
+				));
+				*/
+			}
+			HwSerializeFormat::PSGT => {
+				//let psgt = self.create_psgt(data);
+
+				// serialize PSGT
+				// serialize_hex(&psgt);
+
+				// Get hex
+				//let hex = "70736274ff010"; // TODO
+
+				// deserialize PSGT
+				//let deserialized = deserialize(hex);
+			}
+		}
 
 		// Convert response data to information we need
-
-		// Get hex
-		let hex = "70736274ff010"; // TODO
-
-		// deserialize PSGT
-		let deserialized = deserialize(hex);
 
 		// Get payment proof signature from response data.
 		//let paymentProofSignature : DalekSignature =
@@ -384,19 +399,24 @@ impl LedgerDevice {
 		&mut self,
 		keychain: &K,
 		context: &Context,
+		hw_ser_format: HwSerializeFormat,
 		data: TransactionData,
 	) -> Result<(), LedgerAppError> {
-		let psgt = self.create_psgt(data);
-		// serialize PSGT
-		serialize_hex(&psgt);
+		match hw_ser_format {
+			HwSerializeFormat::APDU => {}
+			HwSerializeFormat::PSGT => {
+				//let psgt = self.create_psgt(data);
+				// serialize PSGT
+				//serialize_hex(&psgt);
 
-		// Get hex
-		let hex = "70736274ff010"; // TODO
+				// Get hex
+				//let hex = "70736274ff010"; // TODO
 
-		// Convert response data to information we need
-		// deserialize PSGT
-		let deserialized = deserialize(hex);
-
+				// Convert response data to information we need
+				// deserialize PSGT
+				//let deserialized = deserialize(hex);
+			}
+		}
 		Ok(())
 	}
 
@@ -450,7 +470,7 @@ impl LedgerDevice {
 	}
 
 	/// Stream a long request in chunks
-	pub async fn send_chunks(
+	async fn send_chunks(
 		&mut self,
 		apdu_transport: &APDUTransport,
 		start_command: &APDUCommand,

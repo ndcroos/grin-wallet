@@ -34,6 +34,7 @@ pub use self::map::{Global, Input, Kernel, Map, Output};
 
 use crate::grin_core::core::transaction::Transaction;
 use crate::grin_core::core::TxKernel;
+use crate::slate::PaymentInfo;
 
 /// A Partially Signed Transaction.
 #[derive(Debug, Clone, PartialEq)]
@@ -49,6 +50,10 @@ pub struct PartiallySignedTransaction {
 	pub outputs: Vec<Output>,
 	///
 	pub kernels: Vec<Kernel>,
+	/*
+		/// Payment proof
+		pub payment_proof: Option<PaymentInfo>,
+	*/
 }
 
 impl PartiallySignedTransaction {
@@ -56,10 +61,11 @@ impl PartiallySignedTransaction {
 	/// if not unsigned
 	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, self::Error> {
 		Ok(PartiallySignedTransaction {
+			global: Global::from_unsigned_tx(tx)?,
 			inputs: vec![Default::default(); tx.body.inputs.len()],
 			outputs: vec![Default::default(); tx.body.outputs.len()],
 			kernels: vec![],
-			global: Global::from_unsigned_tx(tx)?,
+			payment_proof: None,
 		})
 	}
 
@@ -114,6 +120,7 @@ mod tests {
 			inputs: vec![],
 			outputs: vec![],
 			kernels: vec![],
+			payment_proof: None,
 		};
 		assert_eq!(
 			serialize_hex(&psgt),

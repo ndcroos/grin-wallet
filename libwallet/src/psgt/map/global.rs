@@ -24,6 +24,7 @@ use crate::psgt;
 use crate::psgt::encode;
 use crate::psgt::encode::Decodable;
 use crate::psgt::endian;
+use crate::psgt::endian::u32_to_array_le;
 use crate::psgt::map::Map;
 use crate::psgt::raw;
 use crate::psgt::Error;
@@ -51,7 +52,7 @@ pub struct Global {
 impl Global {
 	/// Create a Global from an unsigned transaction, error if not unsigned
 	pub fn from_unsigned_tx(tx: Transaction) -> Result<Self, psgt::Error> {
-		for txin in &tx.body.inputs {}
+		//for txin in &tx.body.inputs {}
 
 		Ok(Global {
 			unsigned_tx: tx,
