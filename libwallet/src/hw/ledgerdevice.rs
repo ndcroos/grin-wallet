@@ -16,29 +16,31 @@
 
 use bincode;
 
+use std::str;
+use std::collections::BTreeMap;
+
+use ed25519_dalek::PublicKey as DalekPublicKey;
+use ed25519_dalek::Signature as DalekSignature;
+
+use crate::types::Context;
+
 use crate::grin_core::core::transaction::Transaction;
-use crate::grin_core::core::{Inputs, Output, TxKernel};
+use crate::grin_core::core::{Inputs, Output, TxKernel, FeeFields};
+
 use crate::hw::apdu_types::*;
 use crate::hw::ledger_error::{Error, LedgerAppError};
 use crate::hw::ledger_types::*;
 use crate::hw::transportnativehid::*;
 
-use std::collections::BTreeMap;
-use std::str;
-
-use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain};
 use crate::grin_util::secp::key::{PublicKey, SecretKey};
 use crate::grin_util::secp::pedersen::Commitment;
 use crate::grin_util::secp::Signature;
 use crate::grin_util::{secp, static_secp_instance};
-use crate::types::Context;
-use ed25519_dalek::PublicKey as DalekPublicKey;
-use ed25519_dalek::Signature as DalekSignature;
+use crate::grin_keychain::{BlindSum, BlindingFactor, Keychain, Identifier, SwitchCommitmentType};
 
 use crate::grin_keychain::Identifier;
 use crate::keykeeper::SenderInputParams;
 use crate::keykeeper_types::TransactionData;
-use crate::psgt::encode::{deserialize, serialize, serialize_hex};
 use crate::slate::{PaymentInfo, Slate};
 
 // Different instructions
@@ -158,7 +160,7 @@ impl LedgerDevice {
 	}
 
 	/// Set command with no optional data.
-	fn set_command_header_noopt(&mut self, instruction: u8, p1: u8, p2: u8) -> APDUCommand {
+	fn set_command_header_noopt(&mut self, instruction: const u8, p1: const u8, p2: const u8) -> APDUCommand {
 		let cmd = APDUCommand {
 			cla: PROTOCOL_VERSION,
 			ins: instruction,
@@ -257,22 +259,179 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-	pub async fn create_psgt(
-		&mut self,
-		data: TransactionData,
-	) -> Result<PartiallySignedTransaction, LedgerAppError> {
-		// Create PSGT
-		let psgt = PartiallySignedTransaction {
-			global: Global {
-				unsigned_tx: Transaction {},
-				version: 0,
-				unknown: BTreeMap::new(),
-			},
-			inputs: data.inputs,
-			outputs: data.outputs,
-			kernels: data.kernels,
-		};
-		Ok(psgt)
+	pub fn start_send_tx(self, 
+			account: &str, 
+			output: const Output, 
+			input: const Input, 
+			fee: const FeeFields, 
+			receiver_address: const DalekPublicKey) 
+			-> Result<(), Error>
+	{
+		let fee_amount = fee.f;
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok(())
+	}
+
+	pub fn get_pubkey(self) -> Result< , Error>
+	{
+		let secp256k1_compressed_key = ;
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn get_account_pubkey(self, 
+		account: const &str) 
+		-> Result<(), Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn select_input(self, 
+		id: const Identifier, 
+		value: const u64, 
+		switch_commitment_type: const SwitchCommitmentType) 
+		-> Result<(), Error>
+	{
+
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok(())
+	}
+
+	pub fn select_output(self, account: const &str) -> Result<(), Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok(())
+	}
+
+	pub fn get_payment_proof(self, 
+		account: const &str, 
+		value: const u64, 
+		commitment: const Commitment, 
+		sender_address: const DalekPublicKey) 
+		-> Result<(), Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		// Deserialize Ed25519 signature.
+		Ok()
+	}
+
+	pub fn get_commitment(self, 
+			account: const &str, 
+			id: const Identifier, 
+			value: const u64, 
+			switch_commitment_type: const SwitchCommitmentType) 
+			-> Result<Commitment, Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		// Deserialize commitment
+		let commitment : Commitment = ;
+		Ok(commitment)
+	}
+
+	pub fn get_private_nonce(self, 
+			account: const &str, 
+			private_nonce: const ) 
+			-> Result<(), Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn adjust_offset(self, offset: const BlindingFactor) -> Result<(), Error>
+	{
+		offset = [u8; SECRET_KEY_SIZE];
+		let data = ;
+		// No response
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok(())
+	}
+
+	pub fn get_aes_key(self) -> Result<(), Error>
+	{
+		let data;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn get_blindingfactor_pubkey(self) -> Result<(), Error>
+	{
+		// No data.
+
+		// Response
+
+		// Secp256k1 compressed key
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn get_kernel(
+			self,
+			sec_nonce: const &SecretKey, 
+			pub_nonce: const &PublicKey, 
+			secp256k1_compressed_key: const ,
+			kernel_type: const KernelFeatures,
+			lock_height: const u64,
+			relative_height: const ,
+			receiver_sig: const DalekSignature,
+			) 
+			-> Result< , Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		// Deserialize signer signature
+		Ok()
+	}
+
+	pub fn get_tor_pub_key(self, account: const &str) -> Result<(), Error>
+	{
+		let data = account;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn get_tor_tx_sig(
+		account: const &str, 
+		value: const u64,
+		commitment: const Commitment,
+		sender_address: const DalekPublicKey,
+	/// Receiver address,
+		data:
+		) -> Result< , Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
+	}
+
+	pub fn get_random_nonce(self) -> Result< , Error>
+	{
+		let data = ;
+		let response = apdu_transport.exchange(&cmd).await?;
+		let description = self.map_apdu_error_description(response.retcode);
+		Ok()
 	}
 
 	/* Round 1*/
@@ -286,9 +445,9 @@ impl LedgerDevice {
 	) -> Result<(), LedgerAppError> {
 		// Convert data to binary, before sending to Ledger device.
 
-		let psgt = self.create_psgt(data);
+		//let psgt = self.create_psgt(data);
 		// serialize PSGT
-		serialize_hex(&psgt);
+		//serialize_hex(&psgt);
 
 		// Set slate as data.
 		//let xs: Vec<u8> = bincode::serialize(&slate).unwrap();
@@ -311,9 +470,9 @@ impl LedgerDevice {
 		// Send
 
 		// Get hex
-		let hex = "70736274ff010"; // TODO
+		//let hex = "70736274ff010"; // TODO
 						   // deserialize PSGT
-		let deserialized = deserialize(hex);
+		//let deserialized = deserialize(hex);
 
 		Ok(())
 	}
@@ -340,10 +499,10 @@ impl LedgerDevice {
 
 		// Set data
 		let tx_info = Vec::new();
-		let psgt = self.create_psgt(data);
+		//let psgt = self.create_psgt(data);
 
 		// serialize PSGT
-		serialize_hex(&psgt);
+		//serialize_hex(&psgt);
 
 		let cmd = APDUCommand {
 			cla: 0xE0,
@@ -365,10 +524,10 @@ impl LedgerDevice {
 		// Convert response data to information we need
 
 		// Get hex
-		let hex = "70736274ff010"; // TODO
+		//let hex = "70736274ff010"; // TODO
 
 		// deserialize PSGT
-		let deserialized = deserialize(hex);
+		//let deserialized = deserialize(hex);
 
 		// Get payment proof signature from response data.
 		//let paymentProofSignature : DalekSignature =
@@ -385,16 +544,16 @@ impl LedgerDevice {
 		context: &Context,
 		data: TransactionData,
 	) -> Result<(), LedgerAppError> {
-		let psgt = self.create_psgt(data);
+		//let psgt = self.create_psgt(data);
 		// serialize PSGT
-		serialize_hex(&psgt);
+		//serialize_hex(&psgt);
 
 		// Get hex
-		let hex = "70736274ff010"; // TODO
+		//let hex = "70736274ff010"; // TODO
 
 		// Convert response data to information we need
 		// deserialize PSGT
-		let deserialized = deserialize(hex);
+		//let deserialized = deserialize(hex);
 
 		Ok(())
 	}
