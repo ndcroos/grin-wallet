@@ -261,10 +261,10 @@ impl LedgerDevice {
 
 	pub fn start_send_tx(self, 
 			account: &str, 
-			output: const Output, 
-			input: const Input, 
-			fee: const FeeFields, 
-			receiver_address: const DalekPublicKey) 
+			const output: Output, 
+			const input: Input, 
+			const fee: FeeFields, 
+			const receiver_address: DalekPublicKey) 
 			-> Result<(), Error>
 	{
 		let fee_amount = fee.f;
@@ -284,7 +284,7 @@ impl LedgerDevice {
 	}
 
 	pub fn get_account_pubkey(self, 
-		account: const &str) 
+		const account: &str) 
 		-> Result<(), Error>
 	{
 		let data = ;
@@ -294,9 +294,9 @@ impl LedgerDevice {
 	}
 
 	pub fn select_input(self, 
-		id: const Identifier, 
-		value: const u64, 
-		switch_commitment_type: const SwitchCommitmentType) 
+		const id: Identifier, 
+		const value: u64, 
+		const switch_commitment_type: SwitchCommitmentType) 
 		-> Result<(), Error>
 	{
 
@@ -306,7 +306,7 @@ impl LedgerDevice {
 		Ok(())
 	}
 
-	pub fn select_output(self, account: const &str) -> Result<(), Error>
+	pub fn select_output(self, const account: &str) -> Result<(), Error>
 	{
 		let data = ;
 		let response = apdu_transport.exchange(&cmd).await?;
@@ -315,10 +315,10 @@ impl LedgerDevice {
 	}
 
 	pub fn get_payment_proof(self, 
-		account: const &str, 
-		value: const u64, 
-		commitment: const Commitment, 
-		sender_address: const DalekPublicKey) 
+		const account: &str, 
+		const value: u64, 
+		const commitment: Commitment, 
+		const sender_address: DalekPublicKey) 
 		-> Result<(), Error>
 	{
 		let data = ;
@@ -329,10 +329,10 @@ impl LedgerDevice {
 	}
 
 	pub fn get_commitment(self, 
-			account: const &str, 
-			id: const Identifier, 
-			value: const u64, 
-			switch_commitment_type: const SwitchCommitmentType) 
+			const account: &str, 
+			const id: Identifier, 
+			const value: u64, 
+			const switch_commitment_type: SwitchCommitmentType) 
 			-> Result<Commitment, Error>
 	{
 		let data = ;
@@ -344,8 +344,8 @@ impl LedgerDevice {
 	}
 
 	pub fn get_private_nonce(self, 
-			account: const &str, 
-			private_nonce: const ) 
+			const account: &str, 
+			const private_nonce: ) 
 			-> Result<(), Error>
 	{
 		let data = ;
@@ -354,7 +354,7 @@ impl LedgerDevice {
 		Ok()
 	}
 
-	pub fn adjust_offset(self, offset: const BlindingFactor) -> Result<(), Error>
+	pub fn adjust_offset(self, const offset: BlindingFactor) -> Result<(), Error>
 	{
 		offset = [u8; SECRET_KEY_SIZE];
 		let data = ;
@@ -386,13 +386,13 @@ impl LedgerDevice {
 
 	pub fn get_kernel(
 			self,
-			sec_nonce: const &SecretKey, 
-			pub_nonce: const &PublicKey, 
-			secp256k1_compressed_key: const ,
-			kernel_type: const KernelFeatures,
-			lock_height: const u64,
-			relative_height: const ,
-			receiver_sig: const DalekSignature,
+			const sec_nonce: &SecretKey, 
+			const pub_nonce: &PublicKey, 
+			const secp256k1_compressed_key: ,
+			const kernel_type: KernelFeatures,
+			const lock_height: u64,
+			const relative_height: ,
+			const receiver_sig: DalekSignature,
 			) 
 			-> Result< , Error>
 	{
@@ -403,7 +403,7 @@ impl LedgerDevice {
 		Ok()
 	}
 
-	pub fn get_tor_pub_key(self, account: const &str) -> Result<(), Error>
+	pub fn get_tor_pub_key(self, const account: &str) -> Result<(), Error>
 	{
 		let data = account;
 		let response = apdu_transport.exchange(&cmd).await?;
@@ -412,10 +412,10 @@ impl LedgerDevice {
 	}
 
 	pub fn get_tor_tx_sig(
-		account: const &str, 
-		value: const u64,
-		commitment: const Commitment,
-		sender_address: const DalekPublicKey,
+		const account: &str, 
+		const value: u64,
+		const commitment: Commitment,
+		const sender_address: DalekPublicKey,
 	/// Receiver address,
 		data:
 		) -> Result< , Error>
